@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   id="svg2"
+   width="144pt"
+   height="144pt"
+   version="1.0"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs5">
+    <linearGradient
+       id="linearGradient3675">
+      <stop
+         style="stop-color:#0000ff;stop-opacity:1;"
+         offset="0"
+         id="stop3671" />
+      <stop
+         style="stop-color:#ff0000;stop-opacity:1;"
+         offset="1"
+         id="stop3673" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient3675"
+       id="linearGradient3681"
+       x1="114.72217"
+       y1="96"
+       x2="154.50781"
+       y2="96"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,-0.59997203,0.90948122,0,55.248777,184.35682)" />
+  </defs>
+  <g
+     id="g18503"
+     transform="matrix(1.4644002,0,0,1.5083815,-112.7634,-48.804621)"
+     style="stroke-width:10.29989936;stroke-dasharray:none">
+    <path
+       style="fill:url(#linearGradient3681);fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:4.9689;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 112.2653,117.5466 30.29369,-29.49464 30.29368,29.49464 z"
+       id="rect2193-9" />
+    <ellipse
+       style="opacity:1;fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:6.02604;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path2247-1"
+       cx="-82.535233"
+       cy="142.55943"
+       rx="7.5532703"
+       ry="7.870615"
+       transform="rotate(-90)" />
+  </g>
+</svg>
