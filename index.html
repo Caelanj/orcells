@@ -9,14 +9,14 @@
   <title>Or Cells</title>
   <meta content="Or Cells (Test Branch)" property="og:title">
   <meta content="A Complicated Simple Logic Simulator" property="og:description">
-  <meta content="https://orcells.rubyswolf.repl.co/" property="og:url">
-  <meta content="/icon.png" property="og:image">
+  <meta content="https://or-test.utilicell.com/" property="og:url">
+  <meta content="/icon2.png" property="og:image">
   <meta content="#eeeeee" data-react-helmet="true" name="theme-color">
   <link href="style.css" rel="stylesheet" type="text/css">
   <link rel="icon" type="image/svg+xml" href="/icon.svg">
 </head>
 
-<body onload="setDeviceReqs()">
+<body>
   <div class="wrapper" style="visibility:hidden; opacity:0">DROP HERE +</div>
   <form action="/upload" class="dropzone" id="dropzone">
     <div style="
@@ -30,16 +30,18 @@
           width: 100%;
           visibility: hidden;
       " id="behindDiv">
-              <h1 id="behind" style="position: absolute;left: 20px;top: 0px;color: #ff0000;cursor: default;">Running Behind!
-              </h1>
-              <h1 style="position: absolute;left: 20px;top: 60px;color: #ff0000;cursor: default;">Skip:</h1>
-              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 310.285 310.285" style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+        <h1 id="behind" style="position: absolute;left: 20px;top: 0px;color: #ff0000;cursor: default;">Running Behind!
+        </h1>
+        <h1 style="position: absolute;left: 20px;top: 60px;color: #ff0000;cursor: default;">Skip:</h1>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
+          viewBox="0 0 310.285 310.285" style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
           cursor: pointer;
       }" xml:space="preserve" width="64px" height="64px" onclick="skipCatchup()">
-                <path d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z">
-                </path>
-              </svg>
-            </div>
+          <path
+            d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z">
+          </path>
+        </svg>
+      </div>
       <h1 id="unstable"
         style="position: absolute;left: 20px;top: 40px;cursor: default;visibility: hidden;font-size: 73px;background: repeating-linear-gradient(45deg, #8f0000, #8f0000 10px, #ff0000 10px, #ff0000 15px);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">
         UNSTABLE!!!</h1>
@@ -110,7 +112,7 @@
 " id="realtimeCheckBox" onclick="realtimeCheck()">
       <svg id="pause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
         id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512"
-        style="position: absolute;right: 100px;bottom: 17px;visibility: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);"
+        style="position: absolute;right: 100px;bottom: 17px;visibility: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
         xml:space="preserve" width="64px" height="64px" onclick="pause()">
         <path
           d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M224,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z M352,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z">
@@ -118,7 +120,7 @@
       </svg>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="play" x="0px"
         y="0px" viewBox="0 0 512 512"
-        style="position: absolute; right: 100px; bottom: 17px; visibility: hidden; filter: drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px);"
+        style="position: absolute; right: 100px; bottom: 17px; visibility: hidden; filter: drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px); cursor: pointer;"
         xml:space="preserve" width="64px" height="64px" onclick="play()">
         <path xmlns="http://www.w3.org/2000/svg"
           d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M344.48,269.57l-128,80  c-2.59,1.617-5.535,2.43-8.48,2.43c-2.668,0-5.34-0.664-7.758-2.008C195.156,347.172,192,341.82,192,336V176  c0-5.82,3.156-11.172,8.242-13.992c5.086-2.836,11.305-2.664,16.238,0.422l128,80c4.676,2.93,7.52,8.055,7.52,13.57  S349.156,266.641,344.48,269.57z">
@@ -126,7 +128,7 @@
       </svg>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1"
         x="0px" y="0px" viewBox="0 0 512 512"
-        style="position: absolute;right: 183px;bottom: 17px;filter: drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px);enable-background:new 0 0 512 512;"
+        style="position: absolute;right: 183px;bottom: 17px;filter: drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px);enable-background:new 0 0 512 512; cursor: pointer;"
         xml:space="preserve" width="64px" height="64px" onclick="tick(false)">
         <path
           d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M280.875,269.313l-96,64  C182.203,335.094,179.109,336,176,336c-2.594,0-5.188-0.625-7.547-1.891C163.25,331.32,160,325.898,160,320V192  c0-5.898,3.25-11.32,8.453-14.109c5.188-2.781,11.516-2.484,16.422,0.797l96,64C285.328,245.656,288,250.648,288,256  S285.328,266.344,280.875,269.313z M368,320c0,8.836-7.156,16-16,16h-16c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h16  c8.844,0,16,7.164,16,16V320z">
