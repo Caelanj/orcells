@@ -2,9 +2,12 @@
 //"3.ly/_"
 //update blueprint from console:
 //cellGrid = cellGrid.map((e) => {return e.map((f) => {return {type: 0, bit: f}})});cullingMap();
+
+//cellConnections.horizontal = cellConnections.horizontal.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"mixed":false}')})});cellConnections.vertical = cellConnections.vertical.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"mixed":false}')})})
 //<parameters>
 var gridWidth = 9; //width of the cell grid
 var gridHeight = 9; //height of the cell grid
+var quality = 2; //image quality from 0-2 (0 being don't draw at all and 2 being vector quality)
 var drift = 50; //how far to drift when letting go after moving and when returning home
 //DO NOT CHANGE WHILE RUNNING, instead use: gridResize(width, height)
 var realtime = false; //if ticks should be run in realtime as fast as possible or on a clock
@@ -12,9 +15,16 @@ var default2Cell = false; // if to make the default cell type a 2-cell
 var tickRate = 100; //time to wait between each tick in miliseconds if realtime is off
 //better off changing with setTick(realtime, tickRate)
 var recovery = false; //if the program should try to recover if it can't keep up
+var record = false; //enable recording from the console with mediaRecorder.start();/mediaRecorder.stop();
 //</parameters>
 //var emptyGrid = JSON.stringify({ "cells": Array(gridWidth).fill(null).map(() => Array(gridHeight).fill({ type: (default2Cell ? 2 : 1), bit: (default2Cell ? { upperBit: 0, lowerBit: 0 } : 0), static: (default2Cell ? { upperStatic: true, lowerStatic: true } : true) })), "connections": { horizontal: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; })), vertical: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; })), applicital: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false }; })), } });
-var paused = (canvas.getContext == null);
+//19-25 kills the preview window in replit so it doesn't waste pc resources, swap commenting for better compatibility:
+//var canvas = document.querySelector("canvas");
+if (canvas.getContext == null) {
+  window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+  throw ("Killed Because Canvas Was Not Defined By Default ");
+  var paused = true;
+}
 var control = false;
 var alt = false;
 var shift = false;
@@ -28,30 +38,19 @@ var magicNumber = 1;
 var driftAscention = Array(20).fill(0);
 var lastDrift = 0;
 var lastCell = [0, 0];
-var startCell = [0, 0];
-var newGrid
-var imgT1B1 = new Image();
-var imgT2B2 = new Image();
-var imgCross = new Image();
-var imgBT2 = new Image();
-var imgBT1 = new Image();
-var imgTB2 = new Image();
-var imgTB1 = new Image();
-var imgT0B1 = new Image();
-var imgT0B2 = new Image();
-var imgT1B0 = new Image();
-var imgT1B1F = new Image();
-var imgT1B2 = new Image();
-var imgT1B2F = new Image();
-var imgT2B0 = new Image();
-var imgT2B1 = new Image();
-var imgT2B1F = new Image();
-var imgT2B2F = new Image();
+var cursorStatic = false;
+var newGrid;
+var tiles = ["T1B1", "T2B2", "Cross", "BT2", "BT1", "TB2", "TB1", "T0B1", "T0B2", "T1B0", "T1B1F", "T1B2", "T1B2F", "T2B0", "T2B1", "T2B1F", "T2B2F"]
+for (var i = 0; i < tiles.length; i++) {
+  eval("var svg" + tiles[i] + " = new Image();")
+  eval("var img" + tiles[i] + " = new Image();")
+}
 var helpMenu = false;
 var render = true;
 var del = false;
 var forceOn = false;
 var forceOff = false;
+var first = true;
 var lastTarget = null;
 var w = canvas.width;
 var h = canvas.height;
@@ -75,7 +74,7 @@ var cellConnections = {
       Array(gridHeight)
         .fill(null)
         .map(() => {
-          return { type: { upperType: 0, lowerType: 0 }, flipped: false };
+          return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false };
         })
     ),
   vertical: Array(gridWidth)
@@ -84,7 +83,7 @@ var cellConnections = {
       Array(gridHeight)
         .fill(null)
         .map(() => {
-          return { type: { upperType: 0, lowerType: 0 }, flipped: false };
+          return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false };
         })
     ),
   applicital: Array(gridWidth)
@@ -97,9 +96,6 @@ var cellConnections = {
         })
     ),
 }
-if (!realtime) {
-  tick()
-}
 const panZoom = {
   x: mobile ? 0 : 464,
   y: mobile ? 0 : 140,
@@ -109,9 +105,18 @@ const panZoom = {
   },
   scaleAt(x, y, sc) {
     // x & y are screen coords, not world
+    let lastScale = this.scale
     this.scale *= sc;
-    this.x = x - (x - this.x) * sc;
-    this.y = y - (y - this.y) * sc;
+    if ((((Math.min(canvas.width, canvas.height) < (gridSize * size))) && (sc > 1)) || ((Math.min(canvas.width, canvas.height) / 200 > (gridSize * size)) && (sc < 1))) {
+      this.scale = lastScale
+    }
+    else {
+      if (Math.floor(Math.log2(lastScale)) != Math.floor(Math.log2(this.scale))) {
+        rasterize()
+      }
+      this.x = x - (x - this.x) * sc;
+      this.y = y - (y - this.y) * sc;
+    }
   },
   toWorld(x, y, point = {}) {
     // converts from screen coords to world coords
@@ -136,7 +141,46 @@ const gridLimit = 512; // max grid lines for static grid
 const gridSize = 128; // grid size in screen pixels for adaptive and world pixels for static
 const scaleRate = 1.02; // Closer to 1 slower rate of change
 const topLeft = { x: 0, y: 0 }; // holds top left of canvas in world coords.
+const svgToPng = (svgDataurl, width, height) => new Promise((resolve, reject) => {
+  let svgCanvas;
+  let ctx;
+  let img;
 
+  img = new Image();
+  img.src = svgDataurl;
+  img.onload = () => {
+    svgCanvas = document.createElement('canvas');
+    svgCanvas.width = width;
+    svgCanvas.height = height;
+    ctx = svgCanvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+    resolve(svgCanvas.toDataURL('image/png'));
+  };
+});
+//<initialization>
+if (!realtime) {
+  tick()
+}
+if (record) {
+  var videoStream = canvas.captureStream(0);
+  var mediaRecorder = new MediaRecorder(videoStream);
+  var chunks = [];
+  mediaRecorder.ondataavailable = function(e) {
+    chunks.push(e.data);
+    console.log(e.data)
+  };
+  mediaRecorder.onstop = function(e) {
+    console.log(chunks)
+    var blob = new Blob(chunks, { 'type': 'video/mp4' });
+    chunks = [];
+    var videoURL = URL.createObjectURL(blob);
+    console.log(videoURL)
+    window.open(videoURL)
+  };
+  mediaRecorder.ondataavailable = function(e) {
+    chunks.push(e.data);
+  };
+}
 /*
 if (localStorage.getItem("orcells") === null) {
   localStorage.setItem("orcells", emptyGrid);
@@ -146,6 +190,7 @@ if (localStorage.getItem("orcells") === null) {
   cellConnections = JSON.parse(localGrid).connections;
 }
 */
+//</initialization>
 window.addEventListener("dragenter", function(e) {
   showWrapper();
   lastTarget = e.target;
@@ -212,9 +257,20 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       alt = true;
       break;
+    case "+":
+      if (record) {
+        mediaRecorder.start()
+      }
+      break;
+    case "-":
+      if (record) {
+        mediaRecorder.stop()
+      }
+      break;
     case "e":
     case "E":
     case "Dead": //wth, why is option+e on mac called "Dead"
+    case "´":
       forceOn = true;
       forceOff = false;
       shift = e.shiftKey;
@@ -223,12 +279,16 @@ document.addEventListener("keydown", (e) => {
     case "q":
     case "Q":
     case "œ":
+    case "Œ":
       forceOff = true;
       forceOn = false
       shift = e.shiftKey;
       alt = e.altKey;
       break;
     case "w":
+    case "W":
+    case "∑":
+    case "„":
       var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
       if ((cellpoint[0] >= 0) && (cellpoint[0] < gridWidth) && (cellpoint[1] >= 0) && (cellpoint[1] < gridHeight) && (cellGrid[cellpoint[0]][cellpoint[1]].type == 1)) {
         cellGrid[cellpoint[0]][cellpoint[1]].type = 2;
@@ -240,6 +300,9 @@ document.addEventListener("keydown", (e) => {
       }
       break;
     case "s":
+    case "S":
+    case "ß":
+    case "Í":
       var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
       if ((cellpoint[0] >= 0) && (cellpoint[0] < gridWidth) && (cellpoint[1] >= 0) && (cellpoint[1] < gridHeight) && (cellGrid[cellpoint[0]][cellpoint[1]].type == 2)) {
         cellGrid[cellpoint[0]][cellpoint[1]].type = 1;
@@ -302,23 +365,23 @@ document.addEventListener("contextmenu", (event) => event.preventDefault());
 ].forEach((name) => document.addEventListener(name, mouseEvents));
 document.addEventListener("wheel", mouseEvents, { passive: false });
 //<tiles>
-imgT1B1.src = "/tiles/t1/b1.svg";
-imgT2B2.src = "/tiles/t2/b2.svg";
-imgCross.src = "/tiles/applicital/3.svg";
-imgBT1.src = "/tiles/applicital/bt/1.svg";
-imgBT2.src = "/tiles/applicital/bt/2.svg";
-imgTB1.src = "/tiles/applicital/tb/1.svg";
-imgTB2.src = "/tiles/applicital/tb/2.svg";
-imgT0B1.src = "/tiles/t0/b1.svg";
-imgT0B2.src = "/tiles/t0/b2.svg";
-imgT1B0.src = "/tiles/t1/b0.svg";
-imgT1B1F.src = "/tiles/t1/b1f.svg";
-imgT1B2.src = "/tiles/t1/b2.svg";
-imgT1B2F.src = "/tiles/t1/b2f.svg";
-imgT2B0.src = "/tiles/t2/b0.svg";
-imgT2B1.src = "/tiles/t2/b1.svg";
-imgT2B1F.src = "/tiles/t2/b1f.svg";
-imgT2B2F.src = "/tiles/t2/b2f.svg";
+svgT1B1.src = "./tiles/t1/b1.svg";
+svgT2B2.src = "./tiles/t2/b2.svg";
+svgCross.src = "./tiles/applicital/3.svg";
+svgBT1.src = "./tiles/applicital/bt/1.svg";
+svgBT2.src = "./tiles/applicital/bt/2.svg";
+svgTB1.src = "./tiles/applicital/tb/1.svg";
+svgTB2.src = "./tiles/applicital/tb/2.svg";
+svgT0B1.src = "./tiles/t0/b1.svg";
+svgT0B2.src = "./tiles/t0/b2.svg";
+svgT1B0.src = "./tiles/t1/b0.svg";
+svgT1B1F.src = "./tiles/t1/b1f.svg";
+svgT1B2.src = "./tiles/t1/b2.svg";
+svgT1B2F.src = "./tiles/t1/b2f.svg";
+svgT2B0.src = "./tiles/t2/b0.svg";
+svgT2B1.src = "./tiles/t2/b1.svg";
+svgT2B1F.src = "./tiles/t2/b1f.svg";
+svgT2B2F.src = "./tiles/t2/b2f.svg";
 //</tiles>
 //<mobile>
 function setDeviceReqs() {
@@ -429,6 +492,14 @@ function realtimeCheck() {
   }
 }
 
+function rasterize() {
+  imgScale = Math.ceil(gridSize * size) * quality
+  for (var i = 0; i < tiles.length; i++) {
+    eval("svgToPng(svg" + tiles[i] + ".src, imgScale, imgScale).then((e) => { img" + tiles[i] + ".src = e })")
+  }
+  //svgToPng(svgCross.src, imgScale, imgScale).then((e) => { imgCross.src = e })
+}
+
 function gridResize(width, height) {
   if (height > gridHeight) {
     cellGrid = cellGrid.map((e) => {
@@ -438,10 +509,10 @@ function gridResize(width, height) {
       return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false } }))
     })
     cellConnections.horizontal = cellConnections.horizontal.map((e) => {
-      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false } }))
+      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false } }))
     })
     cellConnections.vertical = cellConnections.vertical.map((e) => {
-      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false } }))
+      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false } }))
     })
     gridHeight = height
   }
@@ -463,8 +534,8 @@ function gridResize(width, height) {
   if (width > gridWidth) {
     cellGrid = cellGrid.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: 1, bit: 0 }; }) }))
     cellConnections.applicital = cellConnections.applicital.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false }; }) }))
-    cellConnections.horizontal = cellConnections.horizontal.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; }) }))
-    cellConnections.vertical = cellConnections.vertical.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; }) }))
+    cellConnections.horizontal = cellConnections.horizontal.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false }; }) }))
+    cellConnections.vertical = cellConnections.vertical.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false }; }) }))
     gridWidth = width
   }
   if (width < gridWidth) {
@@ -486,18 +557,20 @@ function cullingMap() {
   cellGrid.forEach((a, i) => {
     indeX = i;
     a.forEach((b, j) => {
-      if (b.type == 1) {
-        if (!b.static) {
-          tickCulling.push([indeX, j])
-        }
-      };
-      if (b.type == 2) {
-        if (!b.static.upperStatic) {
-          tickCulling2.push([indeX, j, 1])
-        }
-        if (!b.static.lowerStatic) {
-          tickCulling2.push([indeX, j, 0])
-        }
+      switch (b.type) {
+        case 1:
+          if (!b.static) {
+            tickCulling.push([indeX, j])
+          }
+          break;
+        case 2:
+          if (!b.static.upperStatic) {
+            tickCulling2.push([indeX, j, 1])
+          }
+          if (!b.static.lowerStatic) {
+            tickCulling2.push([indeX, j, 0])
+          }
+          break;
       }
     })
   })
@@ -516,17 +589,27 @@ function cullingMap() {
 function isConnected(target, shift = [0, 0]) {
   let tx = target[0] - shift[0]
   let ty = target[1] - shift[1]
+  let upperConnected = false
+  let lowerConnected = false
+  //from right
+  upperConnected ||= (cellConnections.horizontal[tx][ty].type.upperType != 0) && (cellConnections.horizontal[tx][ty].flipped)
+  lowerConnected ||= (cellConnections.horizontal[tx][ty].type.lowerType != 0) && (cellConnections.horizontal[tx][ty].flipped != (cellConnections.horizontal[tx][ty].mixed))
+  //from bottom
+  upperConnected ||= (cellConnections.vertical[tx][ty].type.upperType != 0) && (cellConnections.vertical[tx][ty].flipped)
+  lowerConnected ||= (cellConnections.vertical[tx][ty].type.lowerType != 0) && (cellConnections.vertical[tx][ty].flipped != (cellConnections.vertical[tx][ty].mixed))
+  //from left
+  if (tx > 0) {
+    upperConnected ||= ((cellConnections.horizontal[tx - 1][ty].type.upperType != 0) && !(cellConnections.horizontal[tx - 1][ty].flipped))
+    lowerConnected ||= ((cellConnections.horizontal[tx - 1][ty].type.lowerType != 0) && !(cellConnections.horizontal[tx - 1][ty].flipped != (cellConnections.horizontal[tx - 1][ty].mixed)))
+  }
+  //from top
+  if (ty > 0) {
+    upperConnected ||= ((cellConnections.vertical[tx][ty - 1].type.upperType != 0) && !(cellConnections.vertical[tx][ty - 1].flipped))
+    lowerConnected ||= ((cellConnections.vertical[tx][ty - 1].type.lowerType != 0) && !(cellConnections.vertical[tx][ty - 1].flipped != (cellConnections.vertical[tx][ty - 1].mixed)))
+  }
   switch (cellGrid[tx][ty].type) {
     case 1:
-      let connected = false
-      connected ||= (((cellConnections.horizontal[tx][ty].type.upperType != 0) || (cellConnections.horizontal[tx][ty].type.lowerType != 0)) && (cellConnections.horizontal[tx][ty].flipped))
-      connected ||= (((cellConnections.vertical[tx][ty].type.upperType != 0) || (cellConnections.vertical[tx][ty].type.lowerType != 0)) && (cellConnections.vertical[tx][ty].flipped))
-      if (tx > 0) {
-        connected ||= (((cellConnections.horizontal[tx - 1][ty].type.upperType != 0) || (cellConnections.horizontal[tx - 1][ty].type.lowerType != 0)) && (!cellConnections.horizontal[tx - 1][ty].flipped))
-      }
-      if (ty > 0) {
-        connected ||= (((cellConnections.vertical[tx][ty - 1].type.upperType != 0) || (cellConnections.vertical[tx][ty - 1].type.lowerType != 0)) && (!cellConnections.vertical[tx][ty - 1].flipped))
-      }
+      let connected = upperConnected || lowerConnected
       culling.tick2 = culling.tick2.filter((i) => { return (JSON.stringify(i) !== JSON.stringify([tx, ty, 0])) && (JSON.stringify(i) !== JSON.stringify([tx, ty, 1])) })
       culling.tick = culling.tick.filter((i) => { return JSON.stringify(i) !== JSON.stringify([tx, ty]) })
       if (connected) {
@@ -538,25 +621,9 @@ function isConnected(target, shift = [0, 0]) {
       }
       break;
     case 2:
-      let upperConnected = false
-      let lowerConnected = false
-      //
-      upperConnected ||= ((cellConnections.horizontal[tx][ty].type.upperType != 0) && (cellConnections.horizontal[tx][ty].flipped != (Math.sign(cellConnections.horizontal[tx][ty].type.upperType) == -1)))
-      lowerConnected ||= ((cellConnections.horizontal[tx][ty].type.lowerType != 0) && (cellConnections.horizontal[tx][ty].flipped != (Math.sign(cellConnections.horizontal[tx][ty].type.lowerType) == -1)))
-      //
-      upperConnected ||= ((cellConnections.vertical[tx][ty].type.upperType != 0) && (cellConnections.vertical[tx][ty].flipped != (Math.sign(cellConnections.vertical[tx][ty].type.upperType) == -1)))
-      lowerConnected ||= ((cellConnections.vertical[tx][ty].type.lowerType != 0) && (cellConnections.vertical[tx][ty].flipped != (Math.sign(cellConnections.vertical[tx][ty].type.lowerType) == -1)))
-      //
-      if (tx > 0) {
-        upperConnected ||= ((cellConnections.horizontal[tx - 1][ty].type.upperType != 0) && !(cellConnections.horizontal[tx - 1][ty].flipped != (Math.sign(cellConnections.horizontal[tx - 1][ty].type.upperType) == -1)))
-        lowerConnected ||= ((cellConnections.horizontal[tx - 1][ty].type.lowerType != 0) && !(cellConnections.horizontal[tx - 1][ty].flipped != (Math.sign(cellConnections.horizontal[tx - 1][ty].type.lowerType) == -1)))
-      }
-      //
-      if (ty > 0) {
-        upperConnected ||= ((cellConnections.vertical[tx][ty - 1].type.upperType != 0) && !(cellConnections.vertical[tx][ty - 1].flipped != (Math.sign(cellConnections.vertical[tx][ty - 1].type.upperType) == -1)))
-        lowerConnected ||= ((cellConnections.vertical[tx][ty - 1].type.lowerType != 0) && !(cellConnections.vertical[tx][ty - 1].flipped != (Math.sign(cellConnections.vertical[tx][ty - 1].type.lowerType) == -1)))
-      }
+      //from below
       upperConnected ||= ((cellConnections.applicital[tx][ty].type != 3) && (cellConnections.applicital[tx][ty].flipped))
+      //from above
       lowerConnected ||= ((cellConnections.applicital[tx][ty].type != 3) && (!cellConnections.applicital[tx][ty].flipped))
       culling.tick2 = culling.tick2.filter((i) => { return (JSON.stringify(i) !== JSON.stringify([tx, ty, 0])) && (JSON.stringify(i) !== JSON.stringify([tx, ty, 1])) })
       culling.tick = culling.tick.filter((i) => { return JSON.stringify(i) !== JSON.stringify([tx, ty]) })
@@ -592,13 +659,13 @@ function help() {
 function pause() {
   paused = true
   document.getElementById("pause").style.visibility = "hidden";
-  document.getElementById("play").style.visibility = "visible";
+  document.getElementById("play").style.visibility = "inherit";
   skipCatchup()
 }
 
 function play() {
   paused = false
-  document.getElementById("pause").style.visibility = "visible";
+  document.getElementById("pause").style.visibility = "inherit";
   document.getElementById("play").style.visibility = "hidden";
   start = new Date().getTime();
   nextAt = start;
@@ -689,6 +756,7 @@ function mouseEvents(e) {
 }
 //<connect>
 canvas.onmousemove = (e) => {
+  cursorStatic = false;
   if (
     (e.buttons === 1 || e.buttons === 2 || e.buttons === 4 || del) &&
     !control
@@ -717,10 +785,16 @@ canvas.onmousemove = (e) => {
             currentCell[0] - (direction[0] === 1 ? 1 : 0)
           ][currentCell[1]].type.lowerType != 0)
           mix &&= !alt
+          mix = mix != cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed
           flip = false
           cellConnections.horizontal[
             currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upperType = (type) * (mix ? -1 : 1);
+          ][currentCell[1]].type.upperType = type
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix
         }
         else {
           if (!alt) {
@@ -734,7 +808,10 @@ canvas.onmousemove = (e) => {
           flip = (mix &&= alt)
           cellConnections.horizontal[
             currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lowerType = (type) * (mix ? -1 : 1);
+          ][currentCell[1]].type.lowerType = type
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix
         }
         if (type != 0) {
           cellConnections.horizontal[
@@ -770,10 +847,16 @@ canvas.onmousemove = (e) => {
             currentCell[1] - (direction[1] === 1 ? 1 : 0)
           ].type.lowerType != 0)
           mix &&= !alt
+          mix = mix != cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed
           flip = false
           cellConnections.vertical[currentCell[0]][
             currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upperType = (type) * (mix ? -1 : 1);
+          ].type.upperType = type
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix
         }
         else {
           if (!alt) {
@@ -787,7 +870,10 @@ canvas.onmousemove = (e) => {
           flip = (mix &&= alt)
           cellConnections.vertical[currentCell[0]][
             currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lowerType = (type) * (mix ? -1 : 1);
+          ].type.lowerType = type
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix
         }
         if (type != 0) {
           cellConnections.vertical[currentCell[0]][
@@ -813,14 +899,14 @@ canvas.onmousemove = (e) => {
 //<mouse>
 canvas.onmousedown = ((e) => {
   lastCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-  startCell = lastCell
+  cursorStatic = true
   if (e.button == 1) {
     e.preventDefault();
   }
 });
 canvas.onmouseup = ((e) => {
   let currentCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-  if ((((currentCell[0] >= 0) && (currentCell[0] < gridWidth) && (currentCell[1] >= 0) && (currentCell[1] < gridHeight)) && ((currentCell[0] == startCell[0]) && (currentCell[1] == startCell[1]))) && (!control)) {
+  if ((((currentCell[0] >= 0) && (currentCell[0] < gridWidth) && (currentCell[1] >= 0) && (currentCell[1] < gridHeight)) && cursorStatic) && (!control)) {
     if (e.button == 1) {
       cellConnections.applicital[currentCell[0]][currentCell[1]].type = 3;
     }
@@ -879,6 +965,10 @@ function drawGrid(gridScreenSize = 128) {
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
   ctx.stroke();
+  if (first) {
+    first = false
+    rasterize()
+  }
 }
 
 function update() {
@@ -978,7 +1068,11 @@ function update() {
     }
   }
   //</force>
+  if (record) {
+    videoStream.getVideoTracks()[0].requestFrame();
+  }
   //<render>
+  //Grid Render:
   culling.grid.occlusion.topLeft = WorldToGrid(panZoom.toWorld(0, 0));
   culling.grid.occlusion.bottomRight = WorldToGrid(panZoom.toWorld(canvas.width, canvas.height));
   for (let x2 = Math.max(0, culling.grid.occlusion.topLeft[0]); x2 < Math.min(gridWidth, culling.grid.occlusion.bottomRight[0] + 1); x2++) {
@@ -995,13 +1089,13 @@ function update() {
   culling.connection.horizontal.forEach((item) => {
     let x2 = item[0];
     let y2 = item[1];
-    if ((cellConnections.horizontal[x2][y2].type.upperType != 0) || (cellConnections.horizontal[x2][y2].lowerType != 0)) {
+    if ((x2 > culling.grid.occlusion.topLeft[0] - 2 && y2 > culling.grid.occlusion.topLeft[1] - 1) && (x2 < culling.grid.occlusion.bottomRight[0] + 1 && y2 < culling.grid.occlusion.bottomRight[1] + 1)) {
       drawConnection(
         [x2, y2],
         cellConnections.horizontal[x2][y2].type,
         cellConnections.horizontal[x2][y2].flipped ? 2 : 0,
         1,
-        ((Math.sign(cellConnections.horizontal[x2][y2].type.upperType) == -1) || (Math.sign(cellConnections.horizontal[x2][y2].type.lowerType) == -1))
+        cellConnections.horizontal[x2][y2].mixed
       );
     }
   })
@@ -1009,13 +1103,13 @@ function update() {
   culling.connection.vertical.forEach((item) => {
     let x2 = item[0];
     let y2 = item[1];
-    if ((cellConnections.vertical[x2][y2].type.upperType != 0) || (cellConnections.vertical[x2][y2].type.lowerType != 0)) {
+    if ((x2 > culling.grid.occlusion.topLeft[0] - 1 && y2 > culling.grid.occlusion.topLeft[1] - 2) && (x2 < culling.grid.occlusion.bottomRight[0] + 1 && y2 < culling.grid.occlusion.bottomRight[1] + 1)) {
       drawConnection(
         [x2, y2],
         cellConnections.vertical[x2][y2].type,
         cellConnections.vertical[x2][y2].flipped ? 3 : 1,
         2,
-        ((Math.sign(cellConnections.vertical[x2][y2].type.upperType) == -1) || (Math.sign(cellConnections.vertical[x2][y2].type.lowerType) == -1))
+        cellConnections.vertical[x2][y2].mixed
       );
     }
   })
@@ -1023,7 +1117,7 @@ function update() {
   culling.connection.applicital.forEach((item) => {
     let x2 = item[0];
     let y2 = item[1];
-    if (cellConnections.applicital[x2][y2].type != 0) {
+    if ((x2 > culling.grid.occlusion.topLeft[0] - 1 && y2 > culling.grid.occlusion.topLeft[1] - 1) && (x2 < culling.grid.occlusion.bottomRight[0] + 1 && y2 < culling.grid.occlusion.bottomRight[1] + 1)) {
       drawConnection(
         [x2, y2],
         { upperType: cellConnections.applicital[x2][y2].type, lowerType: cellConnections.applicital[x2][y2].type },
@@ -1242,7 +1336,7 @@ function drawConnection(point, type, rotate, axis, flipped = false) {
       );
       break;
   }
-  image = getImage(Math.abs(type.upperType), Math.abs(type.lowerType), flipped, (axis == 3))
+  image = getImage(type.upperType, type.lowerType, flipped, (axis == 3))
   ctx.rotate(rad(rotate * 90));
   ctx.translate(
     -((panZoom.scale * gridSize) / 2),
@@ -1270,27 +1364,34 @@ function tick(auto = true) {
         switch (cellGrid[x2 - 1][y2].type) {
           case 1:
             bit |=
-              (((cellConnections.horizontal[x2 - 1][y2].type.upperType == 1) || (cellConnections.horizontal[x2 - 1][y2].type.lowerType == 1)) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+              ((cellConnections.horizontal[x2 - 1][y2].type.upperType == 1) &&
+                (!cellConnections.horizontal[x2 - 1][y2].flipped) &&
                 cellGrid[x2 - 1][y2].bit == 1) ||
-              (((cellConnections.horizontal[x2 - 1][y2].type.upperType == 2) || (cellConnections.horizontal[x2 - 1][y2].type.lowerType == 2)) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+              ((cellConnections.horizontal[x2 - 1][y2].type.upperType == 2) &&
+                (!cellConnections.horizontal[x2 - 1][y2].flipped) &&
+                cellGrid[x2 - 1][y2].bit == 0);
+            bit |=
+              ((cellConnections.horizontal[x2 - 1][y2].type.lowerType == 1) &&
+                (cellConnections.horizontal[x2 - 1][y2].flipped == cellConnections.horizontal[x2 - 1][y2].mixed) &&
+                cellGrid[x2 - 1][y2].bit == 1) ||
+              ((cellConnections.horizontal[x2 - 1][y2].type.lowerType == 2) &&
+                (cellConnections.horizontal[x2 - 1][y2].flipped == cellConnections.horizontal[x2 - 1][y2].mixed) &&
                 cellGrid[x2 - 1][y2].bit == 0);
             break;
           case 2:
             bit |=
               ((cellConnections.horizontal[x2 - 1][y2].type.upperType == 1) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+                (!cellConnections.horizontal[x2 - 1][y2].flipped) &&
                 cellGrid[x2 - 1][y2].bit.upperBit == 1) ||
               ((cellConnections.horizontal[x2 - 1][y2].type.upperType == 2) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+                (!cellConnections.horizontal[x2 - 1][y2].flipped) &&
                 cellGrid[x2 - 1][y2].bit.upperBit == 0);
             bit |=
               ((cellConnections.horizontal[x2 - 1][y2].type.lowerType == 1) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+                (cellConnections.horizontal[x2 - 1][y2].flipped == cellConnections.horizontal[x2 - 1][y2].mixed) &&
                 cellGrid[x2 - 1][y2].bit.lowerBit == 1) ||
               ((cellConnections.horizontal[x2 - 1][y2].type.lowerType == 2) &&
-                !cellConnections.horizontal[x2 - 1][y2].flipped &&
+                (cellConnections.horizontal[x2 - 1][y2].flipped == cellConnections.horizontal[x2 - 1][y2].mixed) &&
                 cellGrid[x2 - 1][y2].bit.lowerBit == 0);
             break;
         }
@@ -1299,11 +1400,18 @@ function tick(auto = true) {
         switch (cellGrid[x2 + 1][y2].type) {
           case 1:
             bit |=
-              (((cellConnections.horizontal[x2][y2].type.upperType == 1) || (cellConnections.horizontal[x2][y2].type.lowerType == 1)) &&
+              ((cellConnections.horizontal[x2][y2].type.upperType == 1) &&
                 cellConnections.horizontal[x2][y2].flipped &&
                 cellGrid[x2 + 1][y2].bit == 1) ||
-              (((cellConnections.horizontal[x2][y2].type.upperType == 2) || (cellConnections.horizontal[x2][y2].type.lowerType == 2)) &&
+              ((cellConnections.horizontal[x2][y2].type.upperType == 2) &&
                 cellConnections.horizontal[x2][y2].flipped &&
+                cellGrid[x2 + 1][y2].bit == 0);
+            bit |=
+              ((cellConnections.horizontal[x2][y2].type.lowerType == 1) &&
+                (cellConnections.horizontal[x2][y2].flipped != cellConnections.horizontal[x2][y2].mixed) &&
+                cellGrid[x2 + 1][y2].bit == 1) ||
+              ((cellConnections.horizontal[x2][y2].type.lowerType == 2) &&
+                (cellConnections.horizontal[x2][y2].flipped != cellConnections.horizontal[x2][y2].mixed) &&
                 cellGrid[x2 + 1][y2].bit == 0);
             break;
           case 2:
@@ -1316,10 +1424,10 @@ function tick(auto = true) {
                 cellGrid[x2 + 1][y2].bit.upperBit == 0);
             bit |=
               ((cellConnections.horizontal[x2][y2].type.lowerType == 1) &&
-                cellConnections.horizontal[x2][y2].flipped &&
+                (cellConnections.horizontal[x2][y2].flipped != cellConnections.horizontal[x2][y2].mixed) &&
                 cellGrid[x2 + 1][y2].bit.lowerBit == 1) ||
               ((cellConnections.horizontal[x2][y2].type.lowerType == 2) &&
-                cellConnections.horizontal[x2][y2].flipped &&
+                (cellConnections.horizontal[x2][y2].flipped != cellConnections.horizontal[x2][y2].mixed) &&
                 cellGrid[x2 + 1][y2].bit.lowerBit == 0);
             break;
         }
@@ -1328,11 +1436,18 @@ function tick(auto = true) {
         switch (cellGrid[x2][y2 - 1].type) {
           case 1:
             bit |=
-              (((cellConnections.vertical[x2][y2 - 1].type.upperType == 1) || (cellConnections.vertical[x2][y2 - 1].type.lowerType == 1)) &&
+              ((cellConnections.vertical[x2][y2 - 1].type.upperType == 1) &&
                 !cellConnections.vertical[x2][y2 - 1].flipped &&
                 cellGrid[x2][y2 - 1].bit == 1) ||
-              (((cellConnections.vertical[x2][y2 - 1].type.upperType == 2) || (cellConnections.vertical[x2][y2 - 1].type.lowerType == 2)) &&
+              ((cellConnections.vertical[x2][y2 - 1].type.upperType == 2) &&
                 !cellConnections.vertical[x2][y2 - 1].flipped &&
+                cellGrid[x2][y2 - 1].bit == 0);
+            bit |=
+              ((cellConnections.vertical[x2][y2 - 1].type.lowerType == 1) &&
+                (cellConnections.vertical[x2][y2 - 1].flipped == cellConnections.vertical[x2][y2 - 1].mixed) &&
+                cellGrid[x2][y2 - 1].bit == 1) ||
+              ((cellConnections.vertical[x2][y2 - 1].type.lowerType == 2) &&
+                (cellConnections.vertical[x2][y2 - 1].flipped == cellConnections.vertical[x2][y2 - 1].mixed) &&
                 cellGrid[x2][y2 - 1].bit == 0);
             break;
           case 2:
@@ -1345,10 +1460,10 @@ function tick(auto = true) {
                 cellGrid[x2][y2 - 1].bit.upperBit == 0);
             bit |=
               ((cellConnections.vertical[x2][y2 - 1].type.lowerType == 1) &&
-                !cellConnections.vertical[x2][y2 - 1].flipped &&
+                (cellConnections.vertical[x2][y2 - 1].flipped == cellConnections.vertical[x2][y2 - 1].mixed) &&
                 cellGrid[x2][y2 - 1].bit.lowerBit == 1) ||
               ((cellConnections.vertical[x2][y2 - 1].type.lowerType == 2) &&
-                !cellConnections.vertical[x2][y2 - 1].flipped &&
+                (cellConnections.vertical[x2][y2 - 1].flipped == cellConnections.vertical[x2][y2 - 1].mixed) &&
                 cellGrid[x2][y2 - 1].bit.lowerBit == 0);
             break;
         }
@@ -1357,11 +1472,18 @@ function tick(auto = true) {
         switch (cellGrid[x2][y2 + 1].type) {
           case 1:
             bit |=
-              (((cellConnections.vertical[x2][y2].type.upperType == 1) || (cellConnections.vertical[x2][y2].type.lowerType == 1)) &&
+              ((cellConnections.vertical[x2][y2].type.upperType == 1) &&
                 cellConnections.vertical[x2][y2].flipped &&
                 cellGrid[x2][y2 + 1].bit == 1) ||
-              (((cellConnections.vertical[x2][y2].type.upperType == 2) || (cellConnections.vertical[x2][y2].type.lowerType == 2)) &&
+              ((cellConnections.vertical[x2][y2].type.upperType == 2) &&
                 cellConnections.vertical[x2][y2].flipped &&
+                cellGrid[x2][y2 + 1].bit == 0);
+            bit |=
+              ((cellConnections.vertical[x2][y2].type.lowerType == 1) &&
+                (cellConnections.vertical[x2][y2].flipped != cellConnections.vertical[x2][y2].mixed) &&
+                cellGrid[x2][y2 + 1].bit == 1) ||
+              ((cellConnections.vertical[x2][y2].type.lowerType == 2) &&
+                (cellConnections.vertical[x2][y2].flipped != cellConnections.vertical[x2][y2].mixed) &&
                 cellGrid[x2][y2 + 1].bit == 0);
             break;
           case 2:
@@ -1374,10 +1496,10 @@ function tick(auto = true) {
                 cellGrid[x2][y2 + 1].bit.upperBit == 0);
             bit |=
               ((cellConnections.vertical[x2][y2].type.lowerType == 1) &&
-                cellConnections.vertical[x2][y2].flipped &&
+                (cellConnections.vertical[x2][y2].flipped != cellConnections.vertical[x2][y2].mixed) &&
                 cellGrid[x2][y2 + 1].bit.lowerBit == 1) ||
               ((cellConnections.vertical[x2][y2].type.lowerType == 2) &&
-                cellConnections.vertical[x2][y2].flipped &&
+                (cellConnections.vertical[x2][y2].flipped != cellConnections.vertical[x2][y2].mixed) &&
                 cellGrid[x2][y2 + 1].bit.lowerBit == 0);
             break;
         }
@@ -1389,97 +1511,92 @@ function tick(auto = true) {
         let x2 = item[0];
         let y2 = item[1];
         let bit = 0;
-        let mixed = false;
         switch (item[2]) {
           case 0:
             if (x2 > 0) {
-              mixed = ((Math.sign(cellConnections.horizontal[x2 - 1][y2].type.lowerType) == -1) || (Math.sign(cellConnections.horizontal[x2 - 1][y2].type.upperType) == -1))
               switch (cellGrid[x2 - 1][y2].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 1) &&
-                      (cellConnections.horizontal[x2 - 1][y2].flipped) == mixed &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 1) &&
+                      (cellConnections.horizontal[x2 - 1][y2].flipped) == cellConnections.horizontal[x2 - 1][y2].mixed &&
                       cellGrid[x2 - 1][y2].bit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 2) &&
-                      (cellConnections.horizontal[x2 - 1][y2].flipped) == mixed &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 2) &&
+                      (cellConnections.horizontal[x2 - 1][y2].flipped) == cellConnections.horizontal[x2 - 1][y2].mixed &&
                       cellGrid[x2 - 1][y2].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 1) &&
-                      (cellConnections.horizontal[x2 - 1][y2].flipped) == mixed &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 1) &&
+                      (cellConnections.horizontal[x2 - 1][y2].flipped) == cellConnections.horizontal[x2 - 1][y2].mixed &&
                       cellGrid[x2 - 1][y2].bit.lowerBit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 2) &&
-                      (cellConnections.horizontal[x2 - 1][y2].flipped) == mixed &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.lowerType) == 2) &&
+                      (cellConnections.horizontal[x2 - 1][y2].flipped) == cellConnections.horizontal[x2 - 1][y2].mixed &&
                       cellGrid[x2 - 1][y2].bit.lowerBit == 0);
                   break;
               }
             }
             if (x2 < gridWidth - 1) {
-              mixed = ((Math.sign(cellConnections.horizontal[x2][y2].type.lowerType) == -1) || (Math.sign(cellConnections.horizontal[x2][y2].type.upperType) == -1))
               switch (cellGrid[x2 + 1][y2].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.lowerType) == 1) &&
-                      (cellConnections.horizontal[x2][y2].flipped) != mixed &&
+                    (((cellConnections.horizontal[x2][y2].type.lowerType) == 1) &&
+                      (cellConnections.horizontal[x2][y2].flipped) != cellConnections.horizontal[x2][y2].mixed &&
                       cellGrid[x2 + 1][y2].bit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.lowerType) == 2) &&
-                      (cellConnections.horizontal[x2][y2].flipped) != mixed &&
+                    (((cellConnections.horizontal[x2][y2].type.lowerType) == 2) &&
+                      (cellConnections.horizontal[x2][y2].flipped) != cellConnections.horizontal[x2][y2].mixed &&
                       cellGrid[x2 + 1][y2].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.lowerType) == 1) &&
-                      (cellConnections.horizontal[x2][y2].flipped) != mixed &&
+                    (((cellConnections.horizontal[x2][y2].type.lowerType) == 1) &&
+                      (cellConnections.horizontal[x2][y2].flipped) != cellConnections.horizontal[x2][y2].mixed &&
                       cellGrid[x2 + 1][y2].bit.lowerBit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.lowerType) == 2) &&
-                      (cellConnections.horizontal[x2][y2].flipped) != mixed &&
+                    (((cellConnections.horizontal[x2][y2].type.lowerType) == 2) &&
+                      (cellConnections.horizontal[x2][y2].flipped) != cellConnections.horizontal[x2][y2].mixed &&
                       cellGrid[x2 + 1][y2].bit.lowerBit == 0);
                   break;
               }
             }
             if (y2 > 0) {
-              let mixed = ((Math.sign(cellConnections.vertical[x2][y2 - 1].type.lowerType) == -1) || (Math.sign(cellConnections.vertical[x2][y2 - 1].type.upperType) == -1))
               switch (cellGrid[x2][y2 - 1].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.lowerType) == 1) &&
-                      (cellConnections.vertical[x2][y2 - 1].flipped) == mixed &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.lowerType) == 1) &&
+                      (cellConnections.vertical[x2][y2 - 1].flipped) == cellConnections.vertical[x2][y2 - 1].mixed &&
                       cellGrid[x2][y2 - 1].bit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.lowerType) == 2) &&
-                      (cellConnections.vertical[x2][y2 - 1].flipped) == mixed &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.lowerType) == 2) &&
+                      (cellConnections.vertical[x2][y2 - 1].flipped) == cellConnections.vertical[x2][y2 - 1].mixed &&
                       cellGrid[x2][y2 - 1].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.lowerType) == 1) &&
-                      (cellConnections.vertical[x2][y2 - 1].flipped) == mixed &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.lowerType) == 1) &&
+                      (cellConnections.vertical[x2][y2 - 1].flipped) == cellConnections.vertical[x2][y2 - 1].mixed &&
                       cellGrid[x2][y2 - 1].bit.lowerBit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.lowerType) == 2) &&
-                      (cellConnections.vertical[x2][y2 - 1].flipped) == mixed &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.lowerType) == 2) &&
+                      (cellConnections.vertical[x2][y2 - 1].flipped) == cellConnections.vertical[x2][y2 - 1].mixed &&
                       cellGrid[x2][y2 - 1].bit.lowerBit == 0);
                   break;
               }
             }
             if (y2 < gridHeight - 1) {
-              let mixed = ((Math.sign(cellConnections.vertical[x2][y2].type.lowerType) == -1) || (Math.sign(cellConnections.vertical[x2][y2].type.upperType) == -1))
               switch (cellGrid[x2][y2 + 1].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.lowerType) == 1) &&
-                      (cellConnections.vertical[x2][y2].flipped) != mixed &&
+                    (((cellConnections.vertical[x2][y2].type.lowerType) == 1) &&
+                      (cellConnections.vertical[x2][y2].flipped) != cellConnections.vertical[x2][y2].mixed &&
                       cellGrid[x2][y2 + 1].bit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.lowerType) == 2) &&
-                      (cellConnections.vertical[x2][y2].flipped) != mixed &&
+                    (((cellConnections.vertical[x2][y2].type.lowerType) == 2) &&
+                      (cellConnections.vertical[x2][y2].flipped) != cellConnections.vertical[x2][y2].mixed &&
                       cellGrid[x2][y2 + 1].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.lowerType) == 1) &&
-                      (cellConnections.vertical[x2][y2].flipped) != mixed &&
+                    (((cellConnections.vertical[x2][y2].type.lowerType) == 1) &&
+                      (cellConnections.vertical[x2][y2].flipped) != cellConnections.vertical[x2][y2].mixed &&
                       cellGrid[x2][y2 + 1].bit.lowerBit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.lowerType) == 2) &&
-                      (cellConnections.vertical[x2][y2].flipped) != mixed &&
+                    (((cellConnections.vertical[x2][y2].type.lowerType) == 2) &&
+                      (cellConnections.vertical[x2][y2].flipped) != cellConnections.vertical[x2][y2].mixed &&
                       cellGrid[x2][y2 + 1].bit.lowerBit == 0);
                   break;
               }
@@ -1498,19 +1615,19 @@ function tick(auto = true) {
               switch (cellGrid[x2 - 1][y2].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.upperType) == 1) &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.upperType) == 1) &&
                       !cellConnections.horizontal[x2 - 1][y2].flipped &&
                       cellGrid[x2 - 1][y2].bit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.upperType) == 2) &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.upperType) == 2) &&
                       !cellConnections.horizontal[x2 - 1][y2].flipped &&
                       cellGrid[x2 - 1][y2].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.upperType) == 1) &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.upperType) == 1) &&
                       !cellConnections.horizontal[x2 - 1][y2].flipped &&
                       cellGrid[x2 - 1][y2].bit.upperBit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2 - 1][y2].type.upperType) == 2) &&
+                    (((cellConnections.horizontal[x2 - 1][y2].type.upperType) == 2) &&
                       !cellConnections.horizontal[x2 - 1][y2].flipped &&
                       cellGrid[x2 - 1][y2].bit.upperBit == 0);
                   break;
@@ -1520,19 +1637,19 @@ function tick(auto = true) {
               switch (cellGrid[x2 + 1][y2].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.upperType) == 1) &&
+                    (((cellConnections.horizontal[x2][y2].type.upperType) == 1) &&
                       cellConnections.horizontal[x2][y2].flipped &&
                       cellGrid[x2 + 1][y2].bit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.upperType) == 2) &&
+                    (((cellConnections.horizontal[x2][y2].type.upperType) == 2) &&
                       cellConnections.horizontal[x2][y2].flipped &&
                       cellGrid[x2 + 1][y2].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.upperType) == 1) &&
+                    (((cellConnections.horizontal[x2][y2].type.upperType) == 1) &&
                       cellConnections.horizontal[x2][y2].flipped &&
                       cellGrid[x2 + 1][y2].bit.upperBit == 1) ||
-                    ((Math.abs(cellConnections.horizontal[x2][y2].type.upperType) == 2) &&
+                    (((cellConnections.horizontal[x2][y2].type.upperType) == 2) &&
                       cellConnections.horizontal[x2][y2].flipped &&
                       cellGrid[x2 + 1][y2].bit.upperBit == 0);
                   break;
@@ -1542,19 +1659,19 @@ function tick(auto = true) {
               switch (cellGrid[x2][y2 - 1].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.upperType) == 1) &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.upperType) == 1) &&
                       !cellConnections.vertical[x2][y2 - 1].flipped &&
                       cellGrid[x2][y2 - 1].bit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.upperType) == 2) &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.upperType) == 2) &&
                       !cellConnections.vertical[x2][y2 - 1].flipped &&
                       cellGrid[x2][y2 - 1].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.upperType) == 1) &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.upperType) == 1) &&
                       !cellConnections.vertical[x2][y2 - 1].flipped &&
                       cellGrid[x2][y2 - 1].bit.upperBit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2 - 1].type.upperType) == 2) &&
+                    (((cellConnections.vertical[x2][y2 - 1].type.upperType) == 2) &&
                       !cellConnections.vertical[x2][y2 - 1].flipped &&
                       cellGrid[x2][y2 - 1].bit.upperBit == 0);
                   break;
@@ -1564,19 +1681,19 @@ function tick(auto = true) {
               switch (cellGrid[x2][y2 + 1].type) {
                 case 1:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.upperType) == 1) &&
-                      (cellConnections.vertical[x2][y2].flipped) != mixed &&
-                      cellGrid[x2][y2 + 1].bit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.upperType) == 2) &&
+                    (((cellConnections.vertical[x2][y2].type.upperType) == 1) &&
+                      (cellConnections.vertical[x2][y2].flipped &&
+                        cellGrid[x2][y2 + 1].bit == 1)) ||
+                    (((cellConnections.vertical[x2][y2].type.upperType) == 2) &&
                       cellConnections.vertical[x2][y2].flipped &&
                       cellGrid[x2][y2 + 1].bit == 0);
                   break;
                 case 2:
                   bit |=
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.upperType) == 1) &&
+                    (((cellConnections.vertical[x2][y2].type.upperType) == 1) &&
                       cellConnections.vertical[x2][y2].flipped &&
                       cellGrid[x2][y2 + 1].bit.upperBit == 1) ||
-                    ((Math.abs(cellConnections.vertical[x2][y2].type.upperType) == 2) &&
+                    (((cellConnections.vertical[x2][y2].type.upperType) == 2) &&
                       cellConnections.vertical[x2][y2].flipped &&
                       cellGrid[x2][y2 + 1].bit.upperBit == 0);
                   break;

@@ -19,12 +19,9 @@
 <body>
   <div class="wrapper" style="visibility:hidden; opacity:0">DROP HERE +</div>
   <form action="/upload" class="dropzone" id="dropzone">
-    <div style="
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
-" id="gameDiv">
-      <canvas id="canvas" style="z-index: 0; cursor: default;" width="1069" height="945"></canvas>
+    </div>
+    <div id="gameDiv" class="mainDiv">
+      <canvas id="canvas" style="z-index: 0; cursor: default;" width="100%" height="100%"></canvas>
       <div style="
           height: 100%;
           width: 100%;
@@ -112,7 +109,7 @@
 " id="realtimeCheckBox" onclick="realtimeCheck()">
       <svg id="pause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
         id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512"
-        style="position: absolute;right: 100px;bottom: 17px;visibility: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
+        style="position: absolute;right: 100px;bottom: 17px;inherit: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
         xml:space="preserve" width="64px" height="64px" onclick="pause()">
         <path
           d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M224,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z M352,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z">
