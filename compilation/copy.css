@@ -6,10 +6,12 @@ html, body {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 canvas { position : absolute; top : 0px; left : 0px; }
-div { 
-  position : absolute; 
-  top : 0px; 
-  left : 0px; 
+div {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
   font-family: 'junegull';
 }
 @font-face {
@@ -24,6 +26,26 @@ h1 {
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  cursor: default;
+}
+h2 {
+  font-family: junegull;
+  user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+  cursor: default;
+}
+a {
+  text-decoration: none;
+}
+ul {
+  filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+}
+ul ul
+{
+  filter: hue-rotate(0);
 }
 input[type="radio"] {
   -ms-transform: scale(2); /* IE 9 */
@@ -33,7 +55,11 @@ input[type="radio"] {
 input[type="radio"]:last-child {
   left: 10px;
 }
-
+.mainDiv {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
+}
 .wrapper {
     background: EEEEEE;
     height: 100%;
@@ -48,18 +74,11 @@ input[type="radio"]:last-child {
     color: 888888;
     line-height: 100vh;
 }
-
-.dropzone {
-  width: 50%;
-  margin: 1%;
-  border: 2px dashed #8f0000 !important;
-  border-radius: 5px;
-}
 input[type="checkbox"].switch_1{
     font-size: 30px;
     -webkit-appearance: none;
-       -moz-appearance: none;
-            appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     width: 64px;
     height: 1.5em;
     background: #ddd;
@@ -94,3 +113,89 @@ input[type="checkbox"].switch_1{
   input[type="checkbox"].switch_1:checked:after{
     left: calc(100% - 1.5em);
   }
+
+[data-quantity] {
+  position: relative;
+  width: 100%;
+  max-width: 11rem;
+  padding: 0;
+  margin: 30px 0;
+  border: 0;
+}
+
+[data-quantity] legend {
+  display: none;
+}
+
+[data-quantity] input {
+  font-size: 18px;
+  font-family: 'junegull';
+  height: 3em;
+  padding: 0 3rem;
+  border-radius: 2rem;
+  border: 0;
+  background: #eee;
+  color: #222;
+  text-align: center;
+  width: 152px;
+  box-sizing: border-box;
+}
+
+[data-quantity] input:focus {
+  outline: none;
+  box-shadow: 0 5px 55px -10px rgba(0, 0, 0, 0.2), 0 0 4px #333333; /* Allows border radius on focus */
+}
+
+[data-quantity] input[type=number]::-webkit-inner-spin-button,
+[data-quantity] input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+[data-quantity] input[type=number] {
+  -moz-appearance: textfield;
+}
+
+[data-quantity] button {
+  position: absolute;
+  width: 2.8rem;
+  height: 2.8rem;
+  top: 0.3rem;
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: #fff
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><path d="M17 25h16M67 25h16M75 17v16" fill="none" stroke="rgb(59,69,66)" stroke-width="1.5px" stroke-linecap="round" stroke-linejoin="round" /></svg>')
+    no-repeat 0 0;
+  background-size: 5.6rem 2.8rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: 100%;
+  border-radius: 1.4rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  opacity: 0.5;
+}
+
+[data-quantity] button:active {
+  background-position-y: 1px;
+  box-shadow: inset 0 2px 12px -4px #c5d1d9;
+}
+
+[data-quantity] button:focus {
+  outline: none;
+}
+
+[data-quantity] button:hover {
+  opacity: 1;
+}
+
+[data-quantity] button.sub {
+  left: 0.1rem;
+}
+
+[data-quantity] button.add {
+  right: 1.6rem;
+  background-position-x: -2.8rem;
+}

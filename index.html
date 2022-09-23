@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -6,48 +7,55 @@
   <meta name="viewport"
     content="minimal-ui, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Or Cells</title>
   <meta content="Or Cells (Test Branch)" property="og:title">
   <meta content="A Complicated Simple Logic Simulator" property="og:description">
   <meta content="https://or-test.utilicell.com/" property="og:url">
-  <meta content="/icon2.png" property="og:image">
   <meta content="#eeeeee" data-react-helmet="true" name="theme-color">
-  <link href="style.css" rel="stylesheet" type="text/css">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#eeeeee">
+  <!--<switch head>-->
+  <meta content="https://or-test.utilicell.com/icon2.png" property="og:image">
+  <link href="./style.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/svg+xml" href="./icon2.svg">
+  <!--</switch>-->
 </head>
 
 <body>
   <div class="wrapper" style="visibility:hidden; opacity:0">DROP HERE +</div>
-  <form action="/upload" class="dropzone" id="dropzone">
+  <form action="/upload" class="dropzone" id="dropzone" onsubmit="return cancelSubmit();">
     </div>
     <div id="gameDiv" class="mainDiv">
       <canvas id="canvas" style="z-index: 0; cursor: default;" width="100%" height="100%"></canvas>
-      <div style="
-          height: 100%;
-          width: 100%;
-          visibility: hidden;
-      " id="behindDiv">
+      <div style="visibility: hidden;pointer-events: none;" id="behindDiv">
         <h1 id="behind" style="position: absolute;left: 20px;top: 0px;color: #ff0000;cursor: default;">Running Behind!
         </h1>
         <h1 style="position: absolute;left: 20px;top: 60px;color: #ff0000;cursor: default;">Skip:</h1>
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
-          viewBox="0 0 310.285 310.285" style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
-          cursor: pointer;
-      }" xml:space="preserve" width="64px" height="64px" onclick="skipCatchup()">
+          viewBox="0 0 310.285 310.285"
+          style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: all;"
+          id="behindSkip" xml:space="preserve" width="64px" height="64px" onclick="skipCatchup()">
           <path
             d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z">
           </path>
         </svg>
       </div>
-      <h1 id="unstable"
-        style="position: absolute;left: 20px;top: 40px;cursor: default;visibility: hidden;font-size: 73px;background: repeating-linear-gradient(45deg, #8f0000, #8f0000 10px, #ff0000 10px, #ff0000 15px);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">
-        UNSTABLE!!!</h1>
-      <div id="modeRadio"
-        style="position: absolute;bottom: 0px;left: 0px;height: 90px;width: 99px;font-family: junegull;visibility: hidden;font-size: 23px;padding-left: 7px">
-        <input type="radio" id="r1" name="move" value="0" checked=""> Move
-        <input type="radio" id="r2" name="move" value="1"> Place
-        <input type="radio" id="r3" name="move" value="2" checked="checked"> Press
+      <div style="visibility: hidden;pointer-events: none;" id="aheadDiv">
+        <h1 id="ahead" style="position: absolute;left: 20px;top: 0px;color: #0000ff;">Running Ahead?!</h1>
+        <h1 style="position: absolute;left: 20px;top: 60px;color: #0000ff;">Ignore:</h1>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
+          viewBox="0 0 310.285 310.285"
+          style="position: absolute;left: 150px;top: 69px;color: #ff0000;filter: invert(7%) sepia(97%) saturate(7432%) hue-rotate(247deg) brightness(106%) contrast(143%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: all;"
+          id="aheadSkip" xml:space="preserve" width="64px" height="64px" onclick="skipCatchup()">
+          <path
+            d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z">
+          </path>
+        </svg>
+        <h1 style="position: absolute;left: 20px;top: 120px;color: #0000ff;">report this lol</h1>
       </div>
+      <h1 id="unstable"
+        style="position: absolute;left: 20px;top: 40px;visibility: hidden;font-size: 73px;background: repeating-linear-gradient(45deg, #8f0000, #8f0000 10px, #ff0000 10px, #ff0000 15px);-webkit-background-clip: text;-webkit-text-fill-color: transparent; background-clip: text;">
+        UNSTABLE!!!</h1>
       <svg xmlns="http://www.w3.org/2000/svg" width="64.4" height="92.10" viewBox="-1000 -1000 780 780" style="
     position: absolute;
     right: 10;
@@ -96,12 +104,36 @@
         </g>
       </svg>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="64px" id="Layer_1"
-        style="enable-background:new 0 0 16 16;position: absolute;right: 167px;top: 23px;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;"
+        style="enable-background:new 0 0 16 16;position: absolute;right: 170px;top: 23px;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;"
         version="1.1" viewBox="0 0 16 16" width="64px" xml:space="preserve" onclick="home()">
         <path
           d="M15.45,7L14,5.551V2c0-0.55-0.45-1-1-1h-1c-0.55,0-1,0.45-1,1v0.553L9,0.555C8.727,0.297,8.477,0,8,0S7.273,0.297,7,0.555  L0.55,7C0.238,7.325,0,7.562,0,8c0,0.563,0.432,1,1,1h1v6c0,0.55,0.45,1,1,1h3v-5c0-0.55,0.45-1,1-1h2c0.55,0,1,0.45,1,1v5h3  c0.55,0,1-0.45,1-1V9h1c0.568,0,1-0.437,1-1C16,7.562,15.762,7.325,15.45,7z">
         </path>
       </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+        viewBox="0 0 512 512"
+        style="enable-background:new 0 0 512 512;position: absolute;right: 250px;top: 23px;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;"
+        xml:space="preserve" width="64px" height="64px" onclick="mute()">
+        <g>
+          <path
+            d="M461.253,256l25.375-25.375c12.496-12.492,12.496-32.758,0-45.25c-12.5-12.5-32.758-12.5-45.258,0l-25.371,25.371   l-25.371-25.371c-12.5-12.5-32.758-12.5-45.258,0c-12.496,12.492-12.496,32.758,0,45.25L370.745,256l-25.375,25.375   c-12.496,12.492-12.496,32.758,0,45.25c6.25,6.25,14.438,9.375,22.629,9.375s16.379-3.125,22.629-9.375l25.371-25.371   l25.371,25.371c6.25,6.25,14.438,9.375,22.629,9.375s16.379-3.125,22.629-9.375c12.496-12.492,12.496-32.758,0-45.25L461.253,256z"
+            id="muteCross" style="visibility: hidden;">
+          </path>
+          <path
+            d="M287.999,0h-48l-144,160h-48C30.327,160,16,174.326,16,192v128c0,17.672,14.327,32,31.999,32h48l144,160h48   c8.836,0,16.001-7.164,16.001-16V16C304,7.164,296.835,0,287.999,0z">
+          </path>
+        </g>
+
+      </svg>
+      <fieldset id="tickRateControl" data-quantity="" style="
+    position: absolute;
+    right: 72px;
+    bottom: 54px;
+">
+        <legend>Change quantity</legend>
+        <button type="button" title="Slower" class="sub">Down</button><input type="number" step="0.01" name="quantity"
+          pattern="[0-9]+"><button type="button" title="Faster" class="add">Up</button>
+      </fieldset>
       <input type="checkbox" class="switch_1" style="
     position: absolute;
     right: 17px;
@@ -109,7 +141,7 @@
 " id="realtimeCheckBox" onclick="realtimeCheck()">
       <svg id="pause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
         id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512"
-        style="position: absolute;right: 100px;bottom: 17px;inherit: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
+        style="position: absolute;right: 100px;bottom: 17px;visibility: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
         xml:space="preserve" width="64px" height="64px" onclick="pause()">
         <path
           d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M224,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z M352,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z">
@@ -131,9 +163,153 @@
           d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M280.875,269.313l-96,64  C182.203,335.094,179.109,336,176,336c-2.594,0-5.188-0.625-7.547-1.891C163.25,331.32,160,325.898,160,320V192  c0-5.898,3.25-11.32,8.453-14.109c5.188-2.781,11.516-2.484,16.422,0.797l96,64C285.328,245.656,288,250.648,288,256  S285.328,266.344,280.875,269.313z M368,320c0,8.836-7.156,16-16,16h-16c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h16  c8.844,0,16,7.164,16,16V320z">
         </path>
       </svg>
-      <script src="script.js"></script>
-
-
+      <div id="mobileControls" style="
+  pointer-events: none;
+  visibility: hidden;
+"><svg id="connectionButton" width="96px" height="96px" version="1.0" xml:space="preserve"
+          xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"
+          xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+          xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 240 240"
+          style="
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+">
+          <metadata id="metadata7">
+            <rdf:RDF>
+              <cc:Work rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+              </cc:Work>
+            </rdf:RDF>
+          </metadata>
+          <defs id="defs5">
+            <linearGradient inkscape:collect="always" id="linearGradient14179">
+              <stop style="stop-color:#ffeeee;stop-opacity:0;" offset="0.30588233" id="stop14175" />
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.49979705" id="stop14177" />
+            </linearGradient>
+            <linearGradient inkscape:collect="always" id="linearGradient4465">
+              <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0" id="stop4461" />
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.33000001" id="stop4469" />
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.66000003" id="stop4471" />
+              <stop style="stop-color:#0000ff;stop-opacity:1;" offset="1" id="stop4463" />
+            </linearGradient>
+            <linearGradient inkscape:collect="always" xlink:href="#linearGradient4465" id="linearGradient4467"
+              x1="142.55898" y1="39.025211" x2="142.55898" y2="152.97479" gradientUnits="userSpaceOnUse" />
+            <linearGradient inkscape:collect="always" xlink:href="#linearGradient14179" id="linearGradient14183"
+              x1="186.3817" y1="82.643517" x2="186.3817" y2="109.35648" gradientUnits="userSpaceOnUse" />
+            <inkscape:path-effect effect="powerclip" id="path-effect20755" is_visible="true" lpeversion="1"
+              inverse="true" flatten="false" hide_clip="false"
+              message="Use fill-rule evenodd on &lt;b&gt;fill and stroke&lt;/b&gt; dialog if no flatten result after convert clip to paths." />
+            <clipPath clipPathUnits="userSpaceOnUse" id="clipPath26997">
+              <rect
+                style="fill:#ff0000;fill-opacity:0.564189;stroke:none;stroke-width:4.5569;stroke-dasharray:none;stroke-opacity:1"
+                id="rect26999" width="60" height="96" x="0" y="24" />
+            </clipPath>
+            <clipPath clipPathUnits="userSpaceOnUse" id="clipPath27099">
+              <rect
+                style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+                id="rect27101" height="222.27797" x="8.861002" y="8.861002" width="222.278" ry="37.046329" />
+            </clipPath>
+          </defs>
+          <sodipodi:namedview inkscape:window-height="1017" inkscape:window-width="1920" inkscape:pageshadow="2"
+            inkscape:pageopacity="0.0" borderopacity="1.0" bordercolor="#666666" pagecolor="#ffffff" id="base"
+            inkscape:showpageshadow="false" borderlayer="top" inkscape:zoom="2.8284271" inkscape:cx="168.11464"
+            inkscape:cy="116.67262" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:current-layer="svg2"
+            inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:document-units="pt" showgrid="false"
+            inkscape:window-maximized="1" />
+          <rect
+            style="fill:#eeeeee;fill-opacity:1;stroke:#eeeeee;stroke-width:13.594;stroke-dasharray:none;stroke-opacity:1"
+            id="rect11004-8" width="226.40604" height="226.40604" x="6.7969809" y="6.7969794"
+            clip-path="url(#clipPath27099)" />
+          <g id="g18503" transform="matrix(1.4644002,0,0,1.5083815,-88.763404,-24.804614)"
+            style="stroke-width:10.2999;stroke-dasharray:none">
+            <path
+              style="fill:url(#linearGradient4467);fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:10.2999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+              d="m 105.51936,44.174686 74.07962,51.825318 -74.07962,51.825306 z" id="rect2193-9"
+              sodipodi:nodetypes="cccc" />
+            <circle
+              style="fill:url(#linearGradient14183);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:14.3249;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+              id="path2247-1-4" cx="186.3817" cy="96" r="13.356481" />
+            <path id="path2247-1"
+              style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#333333;stroke-width:10.2999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+              d="m 199.56028,95.999954 v 0 a 13.178703,13.178703 0 0 1 -13.1787,13.178706 13.178703,13.178703 0 0 1 -13.17871,-13.178706" />
+          </g>
+          <rect
+            style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill;pointer-events: all;cursor: pointer;"
+            id="connectionRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329"></rect>
+        </svg>
+        <svg id="forceButton" width="96px" height="96px" version="1.0" xml:space="preserve"
+          xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"
+          xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+          xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 240 240"
+          style="
+  position: absolute;
+  left: 0px;
+  bottom: 96px;
+">
+          <metadata id="metadata7">
+            <rdf:rdf>
+              <cc:work rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
+              </cc:work>
+            </rdf:rdf>
+          </metadata>
+          <defs id="defs5">
+            <linearGradient inkscape:collect="always" id="linearGradient27665">
+              <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0" id="stop27661"></stop>
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.33000001" id="stop27669"></stop>
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.66000003" id="stop27671"></stop>
+              <stop style="stop-color:#0000ff;stop-opacity:1;" offset="1" id="stop27663"></stop>
+            </linearGradient>
+            <linearGradient id="linearGradient14179">
+              <stop style="stop-color:#ffeeee;stop-opacity:0;" offset="0.30588233" id="stop14175"></stop>
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.49979705" id="stop14177"></stop>
+            </linearGradient>
+            <linearGradient id="linearGradient4465">
+              <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0" id="stop4461"></stop>
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.33000001" id="stop4469"></stop>
+              <stop style="stop-color:#eeeeee;stop-opacity:1;" offset="0.66000003" id="stop4471"></stop>
+              <stop style="stop-color:#0000ff;stop-opacity:1;" offset="1" id="stop4463"></stop>
+            </linearGradient>
+            <linearGradient xlink:href="#linearGradient4465" id="linearGradient4467" x1="142.55898" y1="39.025211"
+              x2="142.55898" y2="152.97479" gradientUnits="userSpaceOnUse"></linearGradient>
+            <linearGradient xlink:href="#linearGradient14179" id="linearGradient14183" x1="186.3817" y1="82.643517"
+              x2="186.3817" y2="109.35648" gradientUnits="userSpaceOnUse"></linearGradient>
+            <clipPath clipPathUnits="userSpaceOnUse" id="clipPath26997">
+              <rect
+                style="fill:#ff0000;fill-opacity:0.564189;stroke:none;stroke-width:4.5569;stroke-dasharray:none;stroke-opacity:1"
+                id="rect26999" width="60" height="96" x="0" y="24"></rect>
+            </clipPath>
+            <clipPath clipPathUnits="userSpaceOnUse" id="clipPath27031">
+              <rect
+                style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+                id="rect27033" height="222.27797" x="8.861002" y="8.861002" width="222.278" ry="37.046329"></rect>
+            </clipPath>
+            <clipPath clipPathUnits="userSpaceOnUse" id="clipPath27035">
+              <rect
+                style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+                id="rect27037" height="222.27797" x="8.861002" y="8.861002" width="222.278" ry="37.046329"></rect>
+            </clipPath>
+            <linearGradient inkscape:collect="always" xlink:href="#linearGradient27665" id="linearGradient27667"
+              x1="175.5695" y1="8.861002" x2="175.5695" y2="231.13897" gradientUnits="userSpaceOnUse"></linearGradient>
+          </defs>
+          <rect
+            style="fill:#040404;fill-opacity:1;stroke:#000000;stroke-width:9.57744;stroke-dasharray:none;stroke-opacity:1"
+            id="rect11004" width="110.42256" height="230.42256" x="4.7887187" y="4.7887187"
+            clip-path="url(#clipPath27035)"></rect>
+          <rect
+            style="fill:url(#linearGradient27667);fill-opacity:1;stroke:#eeeeee;stroke-width:9.57744;stroke-dasharray:none;stroke-opacity:1"
+            id="rect11004-8" width="110.42256" height="230.42256" x="124.78872" y="4.7887187"
+            clip-path="url(#clipPath27031)"></rect>
+          <rect style="fill:#000000;stroke:#333333;stroke-width:19.4432;stroke-dasharray:none;stroke-opacity:1"
+            id="rect1926" width="3.519433" height="220.55676" x="118.24029" y="9.7216167"></rect>
+          <rect
+            style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill;pointer-events: all;cursor: pointer;"
+            id="forceRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329"></rect>
+        </svg>
+      </div>
     </div>
     <svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
       xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
@@ -181,8 +357,57 @@
       </g>
     </svg>
     <div id="help"
-      style="width: 85%; height: 77%; background: #eeeeee; border-radius: 56px; position: absolute; top: 50%; left: 50%; transform: translateY(-50%) translateX(-50%); border: 5px solid #333333; visibility: hidden;">
+      style="width: 77%;height: 77%;background: #eee;border-radius: 56px;position: absolute;top: 50%;left: 50%;transform: translateY(-50%) translateX(-50%);border: 5px solid rgb(51, 51, 51);visibility: hidden;">
+      <button style="
+    margin: 0;
+    position: absolute;
+    top: 34%;
+    left: 50%;
+    width: 60%;
+    font-size: 200%;
+    height: 15%;
+    display: flex;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+" class="textButton" onclick="window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ')"><a style="
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+">Video Tutorial</a></button>
+      <!--<switch tutorialButton>-->
+      <button style="
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    font-size: 200%;
+    height: 15%;
+    display: flex;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+" class="textButton" 
+        onclick="window.open('./tutorial/tutorial.html')"
+        ><a style="
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+">Text Tutorial</a></button>
+      <!--</switch>-->
+      <button style="
+    margin: 0;
+    position: absolute;
+    top: 66%;
+    left: 50%;
+    width: 60%;
+    font-size: 200%;
+    height: 15%;
+    display: flex;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+" class="textButton" onclick="window.open('mailto:billbong1235@gmail.com')"><a style="
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+">Contact Dev</a></button>
     </div>
+    <!--<switch script>-->
+    <script src="./script.js"></script>
+    <!--</switch>-->
 </body>
 
 </html>

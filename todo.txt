@@ -1,0 +1,25 @@
+- not done
+/ in progress
+| done
+
+/ phase 3:
+- idle tick optimisation
+- chunking render optimisation
+/ mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
+/ tutorial/help
+| music
+| tickrate control
+- settings (drift, quality...)
+- efficient blueprints in better format than JSON (still support JSON downloads by ctrl clicking download for programmers to make cool stuff)
+- title screen
+- make ticks stop when there is nothing to simulate
+
+- phase 4:
+- accounts
+- cloud blueprints
+- blueprint sharing
+premium only?:
+- pathfinding tool
+- selections (copy and paste stuff)
+- save selections as components for use anywhere
+- upload/share components 

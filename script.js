@@ -1,11 +1,12 @@
-//eggs
-//"3.ly/_"
+console.log("if you know what your doing and want to help then join the discord:")
+console.log("https://discord.gg/2MZS7XZdXj")
 //update blueprint from console:
 //cellGrid = cellGrid.map((e) => {return e.map((f) => {return {type: 0, bit: f}})});cullingMap();
 
-//cellConnections.horizontal = cellConnections.horizontal.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"mixed":false}')})});cellConnections.vertical = cellConnections.vertical.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"mixed":false}')})})
+//cellConnections.horizontal = cellConnections.horizontal.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"static":true, "mixed":false}')})});cellConnections.vertical = cellConnections.vertical.map((item) => {return item.map((item2) => {stringified = JSON.stringify(item2);return JSON.parse(stringified.substring(0, stringified.length-1)+',"static":true,"mixed":false}')})})
 //<parameters>
-var gridWidth = 9; //width of the cell grid
+var gridWidth = 9;
+//width of the cell grid
 var gridHeight = 9; //height of the cell grid
 var quality = 2; //image quality from 0-2 (0 being don't draw at all and 2 being vector quality)
 var drift = 50; //how far to drift when letting go after moving and when returning home
@@ -15,7 +16,8 @@ var default2Cell = false; // if to make the default cell type a 2-cell
 var tickRate = 100; //time to wait between each tick in miliseconds if realtime is off
 //better off changing with setTick(realtime, tickRate)
 var recovery = false; //if the program should try to recover if it can't keep up
-var record = false; //enable recording from the console with mediaRecorder.start();/mediaRecorder.stop();
+var record = true; //enable recording from the console with mediaRecorder.start();/mediaRecorder.stop();
+var muted = true; //if soundtrakcs should be muted by default
 //</parameters>
 //var emptyGrid = JSON.stringify({ "cells": Array(gridWidth).fill(null).map(() => Array(gridHeight).fill({ type: (default2Cell ? 2 : 1), bit: (default2Cell ? { upperBit: 0, lowerBit: 0 } : 0), static: (default2Cell ? { upperStatic: true, lowerStatic: true } : true) })), "connections": { horizontal: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; })), vertical: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false }; })), applicital: Array(gridWidth).fill(null).map(() => Array(gridHeight).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false }; })), } });
 //19-25 kills the preview window in replit so it doesn't waste pc resources, swap commenting for better compatibility:
@@ -28,18 +30,41 @@ if (canvas.getContext == null) {
 var control = false;
 var alt = false;
 var shift = false;
+var connection = false;
 var driftCharge = 0;
 var driftx = 0;
 var drifty = 0;
+var tickDrift = 0
 var extra = 1;
 var homeCharge = 0;
-var mobile = false;
+//<mobile>
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+  // true for mobile device
+  var mobile = true;
+  quality = 1
+  //document.getElementById("modeRadio").style.visibility = "visible";
+  document.getElementById("mobileControls").style.visibility = "visible";
+} else {
+  // false for not mobile device
+  var mobile = false
+}
+//</mobile>
 var magicNumber = 1;
 var driftAscention = Array(20).fill(0);
 var lastDrift = 0;
-var lastCell = [0, 0];
+var lastCell;
 var cursorStatic = false;
 var newGrid;
+var soundtracks = ["https://drive.google.com/uc?export=download&id=1SEhtmPk-VuIYk9EzTfnretk62DzIWK3k",
+  "https://drive.google.com/uc?export=download&id=1In6dTH9f4jT5QjMzqmMreAm5oZ6pLdbf",
+  "https://drive.google.com/uc?export=download&id=1_UASirXo1GB1BUV24Jk4MYz71fQW0kXQ",
+  "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
+  "https://drive.google.com/uc?export=download&id=1_lrAyHc9RkPCoZ03rPdLpX8PLJTMdf1c",
+  "https://drive.google.com/uc?export=download&id=1cq0KR7B_3Dbku3668iSCtE5Q-Fbdnsmd",
+  "https://drive.google.com/uc?export=download&id=1NACj9P4KPASmT9mDBvuuJ4UcnH7IYizr",
+  "https://drive.google.com/uc?export=download&id=1FIWCweWhOkJgBjq8xhbs9RERo9fby_YK",
+  "https://drive.google.com/uc?export=download&id=1n3AwpuPk72-bxCENutLuGhjc5tyg2ukF",
+  "https://drive.google.com/uc?export=download&id=16zToeg8eqVK9nciCMdR0rzDzX5pP6hEw"]
 var tiles = ["T1B1", "T2B2", "Cross", "BT2", "BT1", "TB2", "TB1", "T0B1", "T0B2", "T1B0", "T1B1F", "T1B2", "T1B2F", "T2B0", "T2B1", "T2B1F", "T2B2F"]
 for (var i = 0; i < tiles.length; i++) {
   eval("var svg" + tiles[i] + " = new Image();")
@@ -52,11 +77,13 @@ var forceOn = false;
 var forceOff = false;
 var first = true;
 var lastTarget = null;
+var lastTouches = [{ pageX: 0, pageY: 0 }];
 var w = canvas.width;
 var h = canvas.height;
 var start;
 var nextAt;
 var ticks = 0;
+var quantities = document.getElementById("tickRateControl")
 var culling = { tick: [], tick2: [], connection: { horizontal: [], vertical: [], applicital: (default2Cell ? Array(gridWidth * gridHeight).fill(0).map((e, i) => { return [Math.floor(i / gridWidth), i % gridWidth] }) : []) }, grid: { occlusion: { topLeft: [], bottomRight: [] } } }
 var cellGrid = Array(gridWidth)
   .fill(null)
@@ -107,11 +134,11 @@ const panZoom = {
     // x & y are screen coords, not world
     let lastScale = this.scale
     this.scale *= sc;
-    if ((((Math.min(canvas.width, canvas.height) < (gridSize * size))) && (sc > 1)) || ((Math.min(canvas.width, canvas.height) / 200 > (gridSize * size)) && (sc < 1))) {
+    if ((((Math.min(canvas.width, canvas.height) < (gridSize * size))) && (sc > 1)) || ((Math.max(canvas.width, canvas.height) / 400 > (gridSize * size)) && (sc < 1))) {
       this.scale = lastScale
     }
     else {
-      if (Math.floor(Math.log2(lastScale)) != Math.floor(Math.log2(this.scale))) {
+      if ((Math.floor(Math.log2(lastScale)) != Math.floor(Math.log2(this.scale))) && (!mobile)) {
         rasterize()
       }
       this.x = x - (x - this.x) * sc;
@@ -127,14 +154,15 @@ const panZoom = {
   },
 };
 const ctx = canvas.getContext("2d");
-const mouse = {
+var mouse = {
   x: 0,
   y: 0,
+  controlX: 0,
+  controlY: 0,
   button: false,
   wheel: 0,
   lastX: 0,
   lastY: 0,
-  lastTouches: [{ pageX: 0, pageY: 0 }],
   drag: false,
 };
 const gridLimit = 512; // max grid lines for static grid
@@ -167,20 +195,21 @@ if (record) {
   var chunks = [];
   mediaRecorder.ondataavailable = function(e) {
     chunks.push(e.data);
-    console.log(e.data)
   };
   mediaRecorder.onstop = function(e) {
-    console.log(chunks)
     var blob = new Blob(chunks, { 'type': 'video/mp4' });
     chunks = [];
     var videoURL = URL.createObjectURL(blob);
-    console.log(videoURL)
     window.open(videoURL)
   };
   mediaRecorder.ondataavailable = function(e) {
     chunks.push(e.data);
   };
 }
+quantities.children[2].value = 10;
+quantities.children[2].onchange = (() => realtimeCheck());
+quantities.children[1].addEventListener('click', () => change_quantity(-1));
+quantities.children[3].addEventListener('click', () => change_quantity(1));
 /*
 if (localStorage.getItem("orcells") === null) {
   localStorage.setItem("orcells", emptyGrid);
@@ -190,6 +219,34 @@ if (localStorage.getItem("orcells") === null) {
   cellConnections = JSON.parse(localGrid).connections;
 }
 */
+let localMute = localStorage.getItem("mute") === "true"
+let localTrack = localStorage.getItem("track")
+let localCurrentTime = localStorage.getItem("currentTime")
+if (localMute === null) {
+  localStorage.setItem("mute", true)
+}
+else {
+  muted = localMute
+  document.getElementById("muteCross").style.visibility = localMute ? "visible" : "hidden"
+}
+if (localTrack === null) {
+  var soundtrackIndex = Math.floor(Math.random() * soundtracks.length);
+  localStorage.setItem("track", soundtrackIndex)
+}
+else {
+  var soundtrackIndex = Number(localTrack)
+}
+var soundtrackAudio = new Audio(soundtracks[soundtrackIndex]);
+soundtrackAudio.volume = 0.5
+if (localCurrentTime === null) {
+  localStorage.setItem("currentTime", 0)
+}
+else {
+  soundtrackAudio.currentTime = Number(localCurrentTime)
+}
+window.onunload = (() => {
+  localStorage.setItem("currentTime", soundtrackAudio.currentTime)
+})
 //</initialization>
 window.addEventListener("dragenter", function(e) {
   showWrapper();
@@ -221,7 +278,6 @@ window.addEventListener("drop", function(e) {
       fetch(dropText)
         .then((response) => response.text())
         .then((text) => {
-          extra = String(text)
           loadData(String(text))
         });
     }
@@ -243,12 +299,26 @@ document.addEventListener("keydown", (e) => {
     case " ":
       e.preventDefault();
       if (paused) { play() } else { pause() }
-      break
+      break;
     case ".":
       tick(false)
       break;
     case "/":
       toggleRealtime();
+      break;
+    case "m":
+    case "M":
+    case "µ":
+    case "Â":
+      mute();
+      break;
+    case "ArrowUp":
+      e.preventDefault();
+      change_quantity(1)
+      break;
+    case "ArrowDown":
+      e.preventDefault();
+      change_quantity(-1)
       break;
     case "Shift":
       shift = true;
@@ -383,19 +453,6 @@ svgT2B1.src = "./tiles/t2/b1.svg";
 svgT2B1F.src = "./tiles/t2/b1f.svg";
 svgT2B2F.src = "./tiles/t2/b2f.svg";
 //</tiles>
-//<mobile>
-function setDeviceReqs() {
-  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    // true for mobile device
-    mobile = true;
-    document.getElementById("modeRadio").style.visibility = "visible";
-  } else {
-    // false for not mobile device
-    document.getElementById("modeRadio").style.visibility = "hidden";
-  }
-}
-setDeviceReqs();
-//</mobile>
 function home() { homeCharge = drift }
 
 function rad(angle) { return angle * (Math.PI / 180) }
@@ -428,7 +485,7 @@ function movingEnabled(status) {
   if (status) {
     control = true;
     canvas.style.cursor = "move";
-  } else if (status == false) {
+  } else {
     control = false;
     canvas.style.cursor = "default";
   }
@@ -468,8 +525,9 @@ function upload() {
   input.type = "file";
   input.onchange = (e) => {
     var uploadedFileData = e.target.files[0];
-    loadData(uploadedFileData);
-
+    uploadedFileData.text().then((f) => {
+      loadData(f);
+    })
   };
 
   input.click();
@@ -483,12 +541,64 @@ function loadData(content) {
   cullingMap()
 }
 
+function cancelSubmit() {
+  return false
+}
+
+function flyIn() {
+  let right = Number(quantities.style.right.split("px")[0])
+  if (right < 72) {
+    if (!document.getElementById("realtimeCheckBox").checked) {
+      quantities.style.visibility = "visible"
+      quantities.style.right = (right + (((1 - ((right + 180) / 252)) * 25) + 2)) + "px"
+      setTimeout(flyIn, 10);
+    }
+    else {
+      flyOut()
+    }
+  }
+  else {
+    if (!document.getElementById("realtimeCheckBox").checked) {
+      quantities.style.right = "72px"
+    }
+    else {
+      flyOut()
+    }
+  }
+}
+
+function flyOut() {
+  let right = Number(quantities.style.right.split("px")[0])
+  if (right > -180) {
+    if (document.getElementById("realtimeCheckBox").checked) {
+      quantities.style.right = (right - (((1 - ((right + 180) / 252)) * 25) + 2)) + "px"
+      setTimeout(flyOut, 10);
+    }
+    else {
+      flyIn()
+    }
+  }
+  else {
+    if (document.getElementById("realtimeCheckBox").checked) {
+      quantities.style.visibility = "hidden"
+    }
+    else {
+      flyIn()
+    }
+  }
+}
+
 function realtimeCheck() {
+  if (quantities.children[2].value <= 0) {
+    quantities.children[2].value = 1
+  }
   if (document.getElementById("realtimeCheckBox").checked) {
+    flyOut()
     setTick(true)
   }
   else {
-    setTick(false, 100)
+    flyIn()
+    setTick(false, (1 / (quantities.children[2].value)) * 1000)
   }
 }
 
@@ -497,13 +607,12 @@ function rasterize() {
   for (var i = 0; i < tiles.length; i++) {
     eval("svgToPng(svg" + tiles[i] + ".src, imgScale, imgScale).then((e) => { img" + tiles[i] + ".src = e })")
   }
-  //svgToPng(svgCross.src, imgScale, imgScale).then((e) => { imgCross.src = e })
 }
 
 function gridResize(width, height) {
   if (height > gridHeight) {
     cellGrid = cellGrid.map((e) => {
-      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: 0, bit: 0 } }))
+      return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: 1, bit: 0, static: true } }))
     })
     cellConnections.applicital = cellConnections.applicital.map((e) => {
       return e.concat(Array(height - gridHeight).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false } }))
@@ -532,7 +641,7 @@ function gridResize(width, height) {
     gridHeight = height
   }
   if (width > gridWidth) {
-    cellGrid = cellGrid.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: 1, bit: 0 }; }) }))
+    cellGrid = cellGrid.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: 1, bit: 0, static: true }; }) }))
     cellConnections.applicital = cellConnections.applicital.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: (default2Cell ? 3 : 0), flipped: false }; }) }))
     cellConnections.horizontal = cellConnections.horizontal.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false }; }) }))
     cellConnections.vertical = cellConnections.vertical.concat(Array(width - gridWidth).fill(null).map(() => { return Array(height).fill(null).map(() => { return { type: { upperType: 0, lowerType: 0 }, flipped: false, mixed: false }; }) }))
@@ -648,10 +757,12 @@ function help() {
   if (helpMenu) {
     helpMenu = false;
     document.getElementById("gameDiv").style.filter = "blur(0px)";
+    document.getElementById("gameDiv").style.pointerEvents = "all";
     document.getElementById("help").style.visibility = "hidden";
   } else {
     helpMenu = true;
     document.getElementById("gameDiv").style.filter = "blur(8px)";
+    document.getElementById("gameDiv").style.pointerEvents = "none";
     document.getElementById("help").style.visibility = "visible";
   }
 }
@@ -667,90 +778,129 @@ function play() {
   paused = false
   document.getElementById("pause").style.visibility = "inherit";
   document.getElementById("play").style.visibility = "hidden";
-  start = new Date().getTime();
-  nextAt = start;
-  ticks = 0;
+  skipCatchup()
   tick();
+}
+function mute(setMute = null) {
+  if ((!muted && setMute == null) || (setMute && !setMute != null)) {
+    soundtrackAudio.pause()
+    document.getElementById("muteCross").style.visibility = "visible"
+    localStorage.setItem("mute", true)
+  }
+  if ((muted && setMute == null) || (!setMute && setMute != null)) {
+    soundtrackAudio.play()
+    document.getElementById("muteCross").style.visibility = "hidden"
+    localStorage.setItem("mute", false)
+  }
+  muted = !muted
+}
+function change_quantity(change) {
+  if (!realtime) {
+    // Get current value
+    let quantity = Number(quantities.children[2].value);
+
+    // Ensure quantity is a valid number
+    if (isNaN(quantity)) quantity = 1;
+
+    // Change quantity
+    quantity += change;
+
+    // Ensure quantity is always a number
+    quantity = Math.max(quantity, 1);
+
+    // Output number
+    quantities.children[2].value = quantity;
+
+    realtimeCheck()
+  }
 }
 
 function setTick(setRealTime, setTickRate) {
+  skipCatchup()
   tickRate = setTickRate
-  if (setRealTime) {
-    realtime = true;
+  if (realtime && !setRealTime) {
+    realtime = false
+    tick()
   }
   else {
-    realtime = false
-    start = new Date().getTime();
-    nextAt = start;
-    ticks = 0;
-    tick();
+    realtime = setRealTime;
   }
 }
 
 function skipCatchup() {
-  start = new Date().getTime();
-  nextAt = start;
-  ticks = 0;
+  ticks = 0
+  start = new Date().getTime()
   document.getElementById("behindDiv").style.visibility = "hidden";
+  document.getElementById("aheadDiv").style.visibility = "hidden";
 }
 function mouseEvents(e) {
   const bounds = canvas.getBoundingClientRect();
-  if (e.type == "touchstart") {
-    pageX =
-      Array.from(e.touches, (x) => x.pageX).reduce((a, b) => a + b, 0) /
-      e.touches.length;
-    pageY =
-      Array.from(e.touches, (x) => x.pageY).reduce((a, b) => a + b, 0) /
-      e.touches.length;
-    mouse.lastX = pageX - bounds.left - scrollX;
-    mouse.lastY = pageY - bounds.top - scrollY;
+  connection = false
+  if (e.type == "touchmove" || e.type == "touchstart") {
+    let touches = Array(e.touches.length).fill(null).map((item, i) => { return { pageX: e.touches[i].pageX, pageY: e.touches[i].pageY, target: e.touches[i].target } })
+    let pageX =
+      Array.from(touches, (x) => x.pageX).reduce((a, b) => a + b, 0) /
+      touches.length;
+    let pageY =
+      Array.from(touches, (x) => x.pageY).reduce((a, b) => a + b, 0) /
+      touches.length;
     mouse.x = pageX - bounds.left - scrollX;
     mouse.y = pageY - bounds.top - scrollY;
+    if (touches.length != lastTouches.length) {
+      mouse.drag = false;
+    }
+    for (let i = 0; i < e.touches.length; i++) {
+      connection ||= touches[i].target.id == "connectionRect"
+    }
+    if (touches.length == 2 && lastTouches.length == 2) {
+      if (connection) {
+        if (touches[0].target.id == "connectionRect") {
+          mouse.controlX = touches[1].pageX
+          mouse.controlY = touches[1].pageY
+        }
+        else {
+          mouse.controlX = touches[0].pageX
+          mouse.controlY = touches[0].pageY
+        }
+        if (e.type == "touchstart") {
+          lastCell = WorldToGrid(panZoom.toWorld(mouse.controlX, mouse.controlY));
+        }
+      }
+      else {
+        let scrolling = distance(lastTouches[0].pageX, lastTouches[0].pageY, lastTouches[1].pageX, lastTouches[1].pageY) - distance(touches[0].pageX, touches[0].pageY, touches[1].pageX, touches[1].pageY);
+        mouse.wheel -= scrolling
+      }
+    }
+    lastTouches = touches
   } else {
-    if (e.type == "touchmove") {
-      pageX =
-        Array.from(e.touches, (x) => x.pageX).reduce((a, b) => a + b, 0) /
-        e.touches.length;
-      pageY =
-        Array.from(e.touches, (x) => x.pageY).reduce((a, b) => a + b, 0) /
-        e.touches.length;
+    if (e.type == "touchend") {
+      let pageX =
+        Array.from(e.changedTouches, (x) => x.pageX).reduce(
+          (a, b) => a + b,
+          0
+        ) / e.changedTouches.length;
+      let pageY =
+        Array.from(e.changedTouches, (x) => x.pageY).reduce(
+          (a, b) => a + b,
+          0
+        ) / e.changedTouches.length;
       mouse.x = pageX - bounds.left - scrollX;
       mouse.y = pageY - bounds.top - scrollY;
-      if (e.touches.length = 2) {
-        mouse.wheel += distance(mouse.x, mouse.y) - distance(mouse.lastX, mouse.lastY);
-        e.preventDefault();
-      }
-      mouse.lastTouches = e.touches;
+      mouse.x += driftx;
+      mouse.y += drifty;
     } else {
-      if (e.type == "touchend") {
-        pageX =
-          Array.from(e.changedTouches, (x) => x.pageX).reduce(
-            (a, b) => a + b,
-            0
-          ) / e.changedTouches.length;
-        pageY =
-          Array.from(e.changedTouches, (x) => x.pageY).reduce(
-            (a, b) => a + b,
-            0
-          ) / e.changedTouches.length;
-        mouse.x = pageX - bounds.left - scrollX;
-        mouse.y = pageY - bounds.top - scrollY;
-        mouse.x += driftx;
-        mouse.y += drifty;
-      } else {
-        mouse.x = e.pageX - bounds.left - scrollX;
-        mouse.y = e.pageY - bounds.top - scrollY;
-      }
+      mouse.x = e.pageX - bounds.left - scrollX;
+      mouse.y = e.pageY - bounds.top - scrollY;
     }
   }
   mouse.button =
-    e.type === "mousedown" || e.type === "touchstart"
+    e.type === "mousedown" || (e.type === "touchstart")
       ? true
-      : e.type === "mouseup" || e.type === "touchend"
+      : e.type === "mouseup" || (e.type === "touchend")
         ? false
         : mouse.button;
   if (e.type === "wheel") {
-    mouse.wheel += -e.deltaY;
+    mouse.wheel -= e.deltaY;
     e.preventDefault();
   }
 }
@@ -768,6 +918,144 @@ canvas.onmousemove = (e) => {
         currentCell[1] - lastCell[1],
       ];
       let type = e.buttons === 4 || del ? 0 : e.buttons;
+      //horizontal
+      if ((Math.abs(direction[0]) === 1 && direction[1] === 0) && ((currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0) && (currentCell[0] - (direction[0] === 1 ? 1 : 0) < gridWidth - 1) && (currentCell[1] >= 0) && (currentCell[1] < gridHeight))) {
+        let mix = ((((direction[0] == -1) && (!cellConnections.horizontal[
+          currentCell[0] - (direction[0] === 1 ? 1 : 0)
+        ][currentCell[1]].flipped)) || ((direction[0] == 1) && (cellConnections.horizontal[
+          currentCell[0] - (direction[0] === 1 ? 1 : 0)
+        ][currentCell[1]].flipped))));
+        if (shift) {
+          if (alt) {
+            cellConnections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.lowerType = type;
+          }
+          mix &&= (cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType != 0)
+          mix &&= !alt
+          mix = mix != cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed
+          mix &&= !(e.buttons === 4 || del)
+          flip = false
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType = type
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix
+        }
+        else {
+          if (!alt) {
+            cellConnections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.upperType = type;
+          }
+          mix &&= (cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType != 0)
+          flip = (mix &&= alt)
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType = type
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix
+        }
+        if (type != 0) {
+          cellConnections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].flipped = (direction[0] === -1) == (!flip);
+        }
+        culling.connection.horizontal = culling.connection.horizontal.filter((i) => { return JSON.stringify(i) !== JSON.stringify([currentCell[0] - (direction[0] === 1 ? 1 : 0), currentCell[1]]) })
+        if ((cellConnections.horizontal[
+          currentCell[0] - (direction[0] === 1 ? 1 : 0)
+        ][currentCell[1]].type.lowerType != 0) || (cellConnections.horizontal[
+          currentCell[0] - (direction[0] === 1 ? 1 : 0)
+        ][currentCell[1]].type.upperType != 0)) {
+          culling.connection.horizontal.push([currentCell[0] - (direction[0] === 1 ? 1 : 0), currentCell[1]])
+        }
+        isConnected(currentCell)
+        isConnected(currentCell, direction)
+      }
+      //vertical
+
+      if ((direction[0] === 0 && Math.abs(direction[1]) === 1) && ((currentCell[0] >= 0) && (currentCell[0] < gridWidth) && (currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0) && (currentCell[1] - (direction[1] === 1 ? 1 : 0) < gridHeight - 1))) {
+        let mix = ((((direction[1] == -1) && (!cellConnections.vertical[currentCell[0]][
+          currentCell[1] - (direction[1] === 1 ? 1 : 0)
+        ].flipped)) || ((direction[1] == 1) && (cellConnections.vertical[currentCell[0]][
+          currentCell[1] - (direction[1] === 1 ? 1 : 0)
+        ].flipped))));
+        if (shift) {
+          if (alt) {
+            cellConnections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.lowerType = type;
+          }
+          mix &&= (cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType != 0)
+          mix &&= !alt
+          mix = mix != cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed
+          mix &&= !(e.buttons === 4 || del)
+          flip = false
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType = type
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix
+        }
+        else {
+          if (!alt) {
+            cellConnections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.upperType = type;
+          }
+          mix &&= (cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType != 0)
+          flip = (mix &&= alt)
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType = type
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix
+        }
+        if (type != 0) {
+          cellConnections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].flipped = (direction[1] === -1) == (!flip);
+        }
+        culling.connection.vertical = culling.connection.vertical.filter((i) => { return JSON.stringify(i) !== JSON.stringify([currentCell[0], currentCell[1] - (direction[1] === 1 ? 1 : 0)]) })
+        if ((cellConnections.vertical[currentCell[0]][
+          currentCell[1] - (direction[1] === 1 ? 1 : 0)
+        ].type.lowerType != 0) || (cellConnections.vertical[currentCell[0]][
+          currentCell[1] - (direction[1] === 1 ? 1 : 0)
+        ].type.upperType != 0)) {
+          culling.connection.vertical.push([currentCell[0], currentCell[1] - (direction[1] === 1 ? 1 : 0)])
+        }
+        isConnected(currentCell)
+        isConnected(currentCell, direction)
+      }
+      lastCell = currentCell;
+    }
+  }
+};
+canvas.ontouchmove = (e) => {
+  if (mobile && connection) {
+    let currentCell = WorldToGrid(panZoom.toWorld(mouse.controlX, mouse.controlY));
+    if (currentCell[0] != lastCell[0] || currentCell[1] != lastCell[1]) {
+      let direction = [
+        currentCell[0] - lastCell[0],
+        currentCell[1] - lastCell[1],
+      ];
+      let type = 1;
       //horizontal
       if ((Math.abs(direction[0]) === 1 && direction[1] === 0) && ((currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0) && (currentCell[0] - (direction[0] === 1 ? 1 : 0) < gridWidth - 1) && (currentCell[1] >= 0) && (currentCell[1] < gridHeight))) {
         let mix = ((((direction[0] == -1) && (!cellConnections.horizontal[
@@ -894,10 +1182,13 @@ canvas.onmousemove = (e) => {
       lastCell = currentCell;
     }
   }
-};
+}
 //</connect>
 //<mouse>
 canvas.onmousedown = ((e) => {
+  if (!lastCell && !muted) {
+    soundtrackAudio.play()
+  }
   lastCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
   cursorStatic = true
   if (e.button == 1) {
@@ -940,6 +1231,14 @@ canvas.onmouseup = ((e) => {
   }
 })
 //</mouse>
+soundtrackAudio.onended = (() => {
+  soundtrackIndex++
+  soundtrackIndex %= soundtracks.length
+  soundtrackAudio.src = soundtracks[soundtrackIndex]
+  localStorage.setItem("track", soundtrackIndex)
+  soundtrackAudio.load()
+  soundtrackAudio.play()
+})
 function drawGrid(gridScreenSize = 128) {
   var size,
     x,
@@ -993,7 +1292,7 @@ function update() {
   if (
     mouse.button &&
     ((control && !mobile) ||
-      (document.querySelector('input[name="move"]:checked').value == 0 &&
+      (!connection &&
         mobile))
   ) {
     if (!mouse.drag) {
@@ -1020,7 +1319,6 @@ function update() {
     mouse.lastX = mouse.x;
     mouse.lastY = mouse.y;
   }
-  requestAnimationFrame(update);
   //<tick>
   if (realtime) {
     tick(true);
@@ -1129,6 +1427,7 @@ function update() {
   })
   //</render>
   homeDrift();
+  requestAnimationFrame(update);
 }
 
 function homeDrift() {
@@ -1714,28 +2013,44 @@ function tick(auto = true) {
     if (!auto || !paused) {
       cellGrid = newGrid;
     }
-    //timing  
+    //<timing>  
     if (!realtime && !paused && auto) {
+      let epoch = new Date().getTime()
       if (!start) {
-        start = new Date().getTime();
-        nextAt = start;
+        nextAt = start = epoch;
       }
-      nextAt += tickRate;
-
-      var drift = (new Date().getTime() - start) - (ticks * tickRate)
-      if (drift > tickRate) {
-        let ticksBehind = Math.floor(drift / tickRate)
+      tickDrift = (epoch - start) - (ticks * tickRate)
+      nextAt = start + (tickRate * (ticks + 1))
+      if (tickDrift > tickRate) {
+        let ticksBehind = Math.floor(tickDrift / tickRate)
         document.getElementById("behindDiv").style.visibility = "visible";
-        document.getElementById("behind").textContent = "Running Behind " + ticksBehind + (ticksBehind == 1 ? " tick!" : " ticks!")
+        if (!helpMenu) {
+          document.getElementById("behindSkip").style.pointerEvents = "all";
+        }
+        document.getElementById("behind").textContent = "Running Behind " + ticksBehind + (ticksBehind == 1 ? "  tick" : " ticks") + "!"
       }
       else {
         document.getElementById("behindDiv").style.visibility = "hidden";
+        document.getElementById("behindSkip").style.pointerEvents = "none";
+      }
+      if (tickDrift < -tickRate) {
+        console.log(tickDrift)
+        let ticksAhead = Math.floor(tickDrift / tickRate) * -1
+        document.getElementById("aheadDiv").style.visibility = "visible";
+        if (!helpMenu) {
+          document.getElementById("aheadSkip").style.pointerEvents = "all";
+        }
+        document.getElementById("ahead").textContent = "Running Ahead " + ticksAhead + (ticksAhead == 1 ? " tick" : " ticks") + "?!"
+      }
+      else {
+        document.getElementById("aheadDiv").style.visibility = "hidden";
+        document.getElementById("aheadSkip").style.pointerEvents = "none";
       }
       ticks++
       if (recovery) {
         let count = driftAscention.filter(value => value === true).length;
-        console.log("count: " + count, "drift: " + drift)
-        if ((count >= 8) && (drift > (10 * tickRate))) {
+        console.log("count: " + count, "drift: " + tickDrift)
+        if ((count >= 8) && (tickDrift > (10 * tickRate))) {
           document.getElementById("unstable").style.visibility = "visible";
           console.warn("unstable, rasing tickrate to: " + tickRate)
           setTick(false, tickRate * 2)
@@ -1743,11 +2058,12 @@ function tick(auto = true) {
         else {
           document.getElementById("unstable").style.visibility = "hidden";
         }
-        driftAscention.unshift(Math.floor(drift / tickRate) > Math.floor(lastDrift / tickRate));
+        driftAscention.unshift(Math.floor(tickDrift / tickRate) > Math.floor(lastDrift / tickRate));
         driftAscention.pop();
-        lastDrift = drift
+        lastDrift = tickDrift
       }
-      setTimeout(tick, nextAt - new Date().getTime());
+      setTimeout(tick, nextAt - epoch);
+      //</timing>
     }
   }
 }

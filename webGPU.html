@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>GPU Tester</title>
+  </head>
+  <body>
+    <div>
+    <h3>GPU Status</h3>
+    <ul class="feature-status-list"><li><span>webGPU: </span><span id="webGPUspan"></span></li><li><span>openGL: </span><span id="GLspan" class="feature-yellow"></span></li></ul>
+  </div>
+    <style>
+    .feature-green {
+      color: rgb(0, 128, 0);
+    }
+    .feature-yellow {
+    color: rgb(128, 128, 0);
+    }
+    .feature-red {
+    color: rgb(255, 0, 0);
+    }
+    </style>
+    <script>
+      var webGPUspan = document.getElementById("webGPUspan")
+      var GLspan = document.getElementById("GLspan")
+      webGPUenabled = ("gpu" in navigator)
+      webGPUspan.textContent = webGPUenabled ? "enabled" : "disabled"
+      webGPUspan.classList.add(webGPUenabled ? "feature-green" : "feature-red")
+          var performance = window.performance || window.mozPerformance || window.msPerformance || window.webkitPerformance || {};
+
+
+
+      var canvas = document.createElement("canvas")
+    var webgl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    var debugInfo = webgl.getExtension("webgl_debug_renderer_info")
+    var gpu = webgl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+    GLspan.textContent = gpu
+
+    </script>
+  </body>
+</html>
