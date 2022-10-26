@@ -45,6 +45,8 @@ html, body {
   }
   ul {
     filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+    font-size: 20px;
+    font-family: 'junegull';
   }
   ul ul
   {
@@ -61,6 +63,7 @@ html, body {
     font-family: 'junegull';
     user-select: none;
     filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+    border-radius: 25px;
   }
   .textButton:hover {
     background: repeating-linear-gradient(45deg, #ACCEF7, #ACCEF7 10px, #458 10px, #458 15px);

@@ -3,19 +3,22 @@
 | done
 
 / phase 3:
-- idle tick optimisation
+/ idle tick optimisation
 - chunking render optimisation
 / mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
+- eggs benedict support
 / tutorial/help
 | music
 | tickrate control
 - settings (drift, quality...)
 - efficient blueprints in better format than JSON (still support JSON downloads by ctrl clicking download for programmers to make cool stuff)
-- title screen
-- make ticks stop when there is nothing to simulate
+/ title screen
+/ make ticks stop when there is nothing to simulate (need to increase efficiency)
+- increase performance by making canvas.onmousemove only defined when a function button is held
 
 - phase 4:
 - accounts
+- tokens with copy protection
 - cloud blueprints
 - blueprint sharing
 premium only?:
