@@ -21,29 +21,38 @@ var tick = {
   rate: 100, //time to wait between each tick in miliseconds in consistent mode
   //better off changing with tick.set(realtime, tickRate)
   recovery: false, //if the program should try to recover if it can't keep up
-  paused: false //if the simulation should be paused by default
+  paused: false, //if the simulation should be paused by default
+  sync: false //if to run ticks in sync with frames in realtime mode (way faster if false)
 }
 var record = {
   enabled: true //if recording is enabled, start with: + stop with: -
 }
-music = {
+var music = {
   muted: true //if soundtracks should be muted by default
 }
 //</parameters>
-var canvas = document.querySelector("canvas");
+//main objects
 var file = {};
-var utility = {};
+var utility = {}; //useful function like distance between 2 points and degrees to radians
+var ui = {};
+var core = {}; //the core functions
+
+render.canvases = {};
+render.ctx = {};
+render.canvases.svg = document.getElementById("svg");
+render.canvases.preRender = document.getElementById("preRender");
+render.canvases.render = document.getElementById("render");
+
 var control = false;
 var alt = false;
 var shift = false;
 var connection = false;
 var size = 0.5;
-var data
 render.driftCharge = 0;
 render.driftx = 0;
 render.drifty = 0;
 tick.drift = 0;
-var extra = 1;
+var extra = 1; //an extra variable that can be set to anything for debugging
 render.homeCharge = 0;
 var idle = true;
 //<mobile>
@@ -124,8 +133,8 @@ var forceOff = false;
 var first = true;
 var lastTarget = null;
 var lastTouches = [{ pageX: 0, pageY: 0 }];
-var w = canvas.width;
-var h = canvas.height;
+var w = render.canvases.render.width;
+var h = render.canvases.render.height;
 var start;
 var nextAt;
 var ticks = 0;
@@ -156,34 +165,15 @@ var culling = {
       ), occlusion: { topLeft: [], bottomRight: [] }
   },
   map: _ => {
-    let tickCulling = [];
-    let tickCulling2 = [];
     let horizontalConnectionCulling = [];
     let verticalConnectionCulling = [];
     let applicitalConnectionCulling = [];
     let indeX = 0;
-    board.cells.forEach((a, i) => {
-      indeX = i;
-      a.forEach((b, j) => {
-        switch (b.type) {
-          case 1:
-            if (!b.static) {
-              tickCulling.push([indeX, j]);
-            }
-            break;
-          case 2:
-            if (!b.static.upperStatic) {
-              tickCulling2.push([indeX, j, 1]);
-            }
-            if (!b.static.lowerStatic) {
-              tickCulling2.push([indeX, j, 0]);
-            }
-            break;
-        }
-      });
-    });
-    culling.tick = tickCulling;
-    culling.tick2 = tickCulling2;
+    for (let x2 = 0; x2 < board.width; x2++) {
+      for (let y2 = 0; y2 < board.height; y2++) {
+        board.isConnected([x2, y2])
+      }
+    }
     indeX = 0;
     board.connections.horizontal.forEach((a, i) => {
       indeX = i;
@@ -243,9 +233,6 @@ board.cells = Array(board.width)
         return {
           type: board.default2Cell ? 2 : 1,
           bit: board.default2Cell ? { upperBit: 0, lowerBit: 0 } : 0,
-          static: board.default2Cell
-            ? { upperStatic: true, lowerStatic: true }
-            : true,
           idle: board.default2Cell ? { upperIdle: true, lowerIdle: true } : true,
         };
       })
@@ -255,7 +242,6 @@ board.defaults = {
     return {
       type: board.default2Cell ? 2 : 1,
       bit: board.default2Cell ? { upperBit: 0, lowerBit: 0 } : 0,
-      static: board.default2Cell ? { upperStatic: true, lowerStatic: true } : true,
       idle: board.default2Cell ? { upperIdle: true, lowerIdle: true } : true,
     };
   },
@@ -307,6 +293,9 @@ board.connections = {
         })
     ),
 };
+board.inBounds = ((point) => {
+  return (point[0] < board.width && point[0] >= 0 && point[1] < board.height && point[1] >= 0)
+})
 board.resize = ((width, height) => {
   if (height > board.height) {
     board.cells = board.cells.map((e) => {
@@ -423,6 +412,7 @@ board.resize = ((width, height) => {
     board.width = width;
   }
   culling.map();
+  render.generateData();
 });
 board.isConnected = ((target, shift = [0, 0]) => {
   let tx = target[0] - shift[0];
@@ -486,10 +476,7 @@ board.isConnected = ((target, shift = [0, 0]) => {
         return JSON.stringify(i) !== JSON.stringify([tx, ty]);
       });
       if (connected) {
-        board.cells[tx][ty].static = false;
         culling.tick.push([tx, ty]);
-      } else {
-        board.cells[tx][ty].static = true;
       }
       break;
     case 2:
@@ -511,16 +498,10 @@ board.isConnected = ((target, shift = [0, 0]) => {
         return JSON.stringify(i) !== JSON.stringify([tx, ty]);
       });
       if (upperConnected) {
-        board.cells[tx][ty].static.upperStatic = false;
         culling.tick2.push([tx, ty, 1]);
-      } else {
-        board.cells[tx][ty].static.upperStatic = true;
       }
       if (lowerConnected) {
-        board.cells[tx][ty].static.lowerStatic = false;
         culling.tick2.push([tx, ty, 0]);
-      } else {
-        board.cells[tx][ty].static.lowerStatic = true;
       }
       break;
   }
@@ -532,7 +513,7 @@ const panZoom = {
   y: mobile ? 0 : 140,
   scale: mobile ? 1 : 0.5,
   apply() {
-    ctx.setTransform(this.scale, 0, 0, this.scale, this.x, this.y);
+    render.ctx.render.setTransform(this.scale, 0, 0, this.scale, this.x, this.y);
   },
   scaleAt(x, y, sc) {
     // x & y are screen coords, not world
@@ -542,7 +523,7 @@ const panZoom = {
     ) {
       render.rasterize();
     }
-    if ((sc < 1 && !(Math.min(canvas.width, canvas.height) < gridSize * (1 / size))) || (sc > 1 && !(Math.max(canvas.width, canvas.height) / 400 > gridSize * (1 / size)))) {
+    if ((sc > 1 && !(Math.min(render.canvases.render.width, render.canvases.render.height) < gridSize * panZoom.scale)) || (sc < 1 && !(Math.max(render.canvases.render.width, render.canvases.render.height) / 400 > gridSize * panZoom.scale))) {
       this.scale *= sc;
       this.x = x - (x - this.x) * sc;
       this.y = y - (y - this.y) * sc;
@@ -557,7 +538,6 @@ const panZoom = {
     return point;
   },
 };
-const ctx = canvas.getContext("2d");
 var mouse = {
   x: 0,
   y: 0,
@@ -569,29 +549,35 @@ var mouse = {
   lastY: 0,
   drag: false,
 };
-const gridLimit = 512; // max grid lines for static grid
-const gridSize = 128; // grid size in screen pixels for adaptive and world pixels for static
-const scaleRate = 1.02; // Closer to 1 slower rate of change
-const topLeft = { x: 0, y: 0 }; // holds top left of canvas in world coords.
+const gridLimit = 512; // max grid lines
+var gridSize = 128; //world pixels
+var scaleRate = 1.02; // Closer to 1 slower rate of change
+const topLeft = { x: 0, y: 0 }; // holds top left of render.canvases.render in world coords.
 const svgToPng = (svgDataurl, width, height) =>
   new Promise((resolve, reject) => {
-    let svgCanvas;
     let ctx;
     let img;
 
     img = new Image();
     img.src = svgDataurl;
     img.onload = _ => {
-      svgCanvas = document.createElement("canvas");
-      svgCanvas.width = width;
-      svgCanvas.height = height;
-      ctx = svgCanvas.getContext("2d");
+      render.canvases.svg.width = width;
+      render.canvases.svg.height = height;
+      ctx = render.canvases.svg.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(svgCanvas.toDataURL("image/png"));
+      resolve(render.canvases.svg.toDataURL("image/png"));
     };
   });
 //<initialization>
 //render
+render.ctx.preRender = render.canvases.preRender.getContext("2d");
+render.ctx.render = render.canvases.render.getContext("2d");
+render.frames = 0;
+setInterval((_ => {
+  console.log("FPS: " + render.frames, " TPS: " + tick.frames)
+  render.frames = 0;
+  tick.frames = 0;
+}), 1000)
 render.getColour = ((state, type) => {
   switch (type) {
     case 1:
@@ -603,7 +589,7 @@ render.getColour = ((state, type) => {
           return [238, 238, 238, 255];
           break;
         default:
-          return [255, 0, 255, 255];
+          return [255, 0, 255, 0];
       }
     case 2:
       switch (state.upperBit) {
@@ -616,7 +602,7 @@ render.getColour = ((state, type) => {
               return [0, 0, 255, 255];
               break;
             default:
-              return [255, 0, 255, 255];
+              return [255, 0, 255, 0];
               break;
           }
         case 1:
@@ -628,15 +614,15 @@ render.getColour = ((state, type) => {
               return [238, 238, 238, 255];
               break;
             default:
-              return [255, 0, 255, 255];
+              return [255, 0, 255, 0];
               break;
           }
         default:
-          return [255, 0, 255, 255];
+          return [255, 0, 255, 0];
           break;
       }
     default:
-      return [255, 0, 255, 255];
+      return [255, 0, 255, 0];
       break;
   }
 })
@@ -683,20 +669,18 @@ render.homeDrift = (_ => {
     panZoom.y -= (panZoom.y - (mobile ? 0 : 140)) / homeSpeed;
     panZoom.scale -= (panZoom.scale - (mobile ? 1 : 0.5)) / homeSpeed;
     render.homeCharge--;
-    render.magicNumber = (1 / panZoom.scale) ** 2;
   }
 })
-render.magicNumber = (1 / panZoom.scale) ** 2;
 render.home = (_ => {
   render.homeCharge = render.drift;
 })
 render.setMoving = ((status) => {
   if (status) {
     control = true;
-    canvas.style.cursor = "move";
+    render.canvases.render.style.cursor = "move";
   } else {
     control = false;
-    canvas.style.cursor = "default";
+    render.canvases.render.style.cursor = "default";
   }
 })
 render.drawGrid = ((gridScreenSize = 128) => {
@@ -712,78 +696,62 @@ render.drawGrid = ((gridScreenSize = 128) => {
     size = gridScale * gridLimit;
   }
   panZoom.apply();
-  ctx.lineWidth = panZoom.scale * 10;
-  ctx.strokeStyle = "#333333";
-  ctx.beginPath();
+  render.ctx.render.lineWidth = panZoom.scale * 10;
+  render.ctx.render.strokeStyle = "#333333";
+  render.ctx.render.beginPath();
   for (i = 0; i < size; i += gridScale) {
-    ctx.moveTo(x + i, y);
-    ctx.lineTo(x + i, y + size);
-    ctx.moveTo(x, y + i);
-    ctx.lineTo(x + size, y + i);
+    render.ctx.render.moveTo(x + i, y);
+    render.ctx.render.lineTo(x + i, y + size);
+    render.ctx.render.moveTo(x, y + i);
+    render.ctx.render.lineTo(x + size, y + i);
   }
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
-  ctx.stroke();
+  render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
+  render.ctx.render.stroke();
   if (first) {
     first = false;
     render.rasterize();
   }
 })
 render.draw = {}
-render.draw.cell = ((point, colour) => {
-  point = GridToWorld(point);
-  //ctx.save()
-  ctx.fillStyle = colour;
-  ctx.beginPath();
-  size = panZoom.scale;
-  //ctx.globalAlpha = 0.75
-  ctx.rect(
-    point[0] / render.magicNumber - (gridSize / 2) * panZoom.scale,
-    point[1] / render.magicNumber - (gridSize / 2) * panZoom.scale + size,
-    gridSize * size,
-    gridSize * size
-  );
-  ctx.fill();
-  //ctx.restore()
-})
 render.draw.connection = ((point, type, rotate, axis, flipped = false) => {
   point = GridToWorld(point);
   size = panZoom.scale;
-  ctx.save();
+  render.ctx.render.save();
   let image = new Image();
   switch (axis) {
     case 1: //Vertical
-      ctx.translate(
-        point[0] / render.magicNumber + (gridSize / 2) * panZoom.scale + size,
-        point[1] / render.magicNumber + size
+      render.ctx.render.translate(
+        point[0] * panZoom.scale * panZoom.scale + (gridSize / 2) * panZoom.scale + size,
+        point[1] * panZoom.scale * panZoom.scale + size
       );
       break;
     case 2: //Horizontal
-      ctx.translate(
-        point[0] / render.magicNumber + size,
-        point[1] / render.magicNumber + (gridSize / 2) * panZoom.scale + size
+      render.ctx.render.translate(
+        point[0] * panZoom.scale * panZoom.scale + size,
+        point[1] * panZoom.scale * panZoom.scale + (gridSize / 2) * panZoom.scale + size
       );
       break;
     case 3: //Applicital
-      ctx.translate(
-        point[0] / render.magicNumber + size,
-        point[1] / render.magicNumber + size
+      render.ctx.render.translate(
+        point[0] * panZoom.scale * panZoom.scale + size,
+        point[1] * panZoom.scale * panZoom.scale + size
       );
       break;
   }
   image = getImage(type.upperType, type.lowerType, flipped, axis == 3);
-  ctx.rotate(utility.rad(rotate * 90));
-  ctx.translate(
+  render.ctx.render.rotate(utility.rad(rotate * 90));
+  render.ctx.render.translate(
     -((panZoom.scale * gridSize) / 2),
     -(panZoom.scale * gridSize) / 2
   );
-  ctx.drawImage(
+  render.ctx.render.drawImage(
     image,
     0,
     0,
     panZoom.scale * gridSize,
     panZoom.scale * gridSize
   );
-  ctx.restore();
+  render.ctx.render.restore();
 })
 render.rasterize = (_ => {
   imgScale = Math.ceil(gridSize * size) * render.quality;
@@ -798,6 +766,7 @@ render.rasterize = (_ => {
   }
 })
 //tick
+tick.frames = 0;
 tick.pause = (_ => {
   tick.paused = true;
   document.getElementById("pause").style.visibility = "hidden";
@@ -844,7 +813,6 @@ tick.set = ((setRealTime, setTickRate) => {
     tick.realtime = setRealTime;
   }
 })
-tick.global = 0;
 tick.tick = ((auto = true) => {
   if ((!auto || !tick.paused) && !idle) {
     lastTick = Date.now();
@@ -1092,7 +1060,7 @@ tick.tick = ((auto = true) => {
     });
     if (!auto || !tick.paused) {
       board.cells = newGrid;
-      tick.global++
+      tick.frames++
     }
     //<timing>
     if (!tick.realtime && !tick.paused && auto) {
@@ -1153,6 +1121,9 @@ tick.tick = ((auto = true) => {
       setTimeout(tick.tick, nextAt - epoch);
       //</timing>
     }
+    if (tick.realtime && !tick.paused && !tick.sync && auto) {
+      setTimeout(tick.tick, 0)
+    }
   }
 })
 if (!tick.realtime) {
@@ -1201,7 +1172,7 @@ var file = {
   })
 }
 //ui
-var ui = {
+ui = {
   help: (_ => {
     if (helpMenu) {
       helpMenu = false;
@@ -1275,7 +1246,7 @@ var ui = {
 }
 //record
 if (record.enabled) {
-  record.stream = canvas.captureStream(0);
+  record.stream = render.canvases.render.captureStream(0);
   record.recorder = new MediaRecorder(record.stream);
   record.chunks = [];
   record.recorder.ondataavailable = ((e) => {
@@ -1542,10 +1513,6 @@ document.addEventListener("keydown", (e) => {
           upperBit: board.cells[cellpoint[0]][cellpoint[1]].bit,
           lowerBit: board.cells[cellpoint[0]][cellpoint[1]].bit,
         };
-        board.cells[cellpoint[0]][cellpoint[1]].static = {
-          upperStatic: true,
-          lowerStatic: true,
-        };
         board.connections.applicital[cellpoint[0]][cellpoint[1]].type =
           board.connections.applicital[cellpoint[0]][cellpoint[1]].type == 0
             ? 3
@@ -1615,6 +1582,7 @@ document.addEventListener("keyup", (e) => {
     case "e":
     case "E":
     case "Dead":
+    case "´":
       forceOn = false;
       shift = false;
       alt = false;
@@ -1622,6 +1590,7 @@ document.addEventListener("keyup", (e) => {
     case "q":
     case "Q":
     case "œ":
+    case "Œ":
       forceOff = false;
       shift = false;
       alt = false;
@@ -1664,7 +1633,7 @@ svgT2B2F.src = "./tiles/t2/b2f.svg";
 eval(((e, n, t, r, o, f) => { if (o = ((e) => { return e.toString(18) }), !"".replace(/^/, String)) { for (; t--;)f[o(t)] = r[t] || o(t); r = [((e) => { return f[e] })], o = (_ => { return "\\w+" }), t = 1 } for (; t--;)r[t] && (e = e.replace(new RegExp("\\b" + o(t) + "\\b", "g"), r[t])); return e })('6(7 2="",1=0;1<8;1++)2+="\\\\9"+"a"[1]+"b"[1];c(4("d(f.g(\'\\""+2+"\\"\'));")).5((e=>e.3())).5((3=>{4(h(3))}));', 0, 18, "|i|out|text|eval|then|for|var|11|u00|22467633267|ef213564ea3|fetch|decodeURIComponent||JSON|parse|String".split("|"), 0, {}));
 //ⳆⳆ("console.log('" + Base64.encode(ⳆⳆﾠstring(ⳆⳆㅤt).replaceAll("​", "0").replaceAll("﻿", "1")) + "')")
 function mouseEvents(e) {
-  const bounds = canvas.getBoundingClientRect();
+  const bounds = render.canvases.render.getBoundingClientRect();
   connection = false;
   if (e.type == "touchmove" || e.type == "touchstart") {
     let touches = Array(e.touches.length)
@@ -1755,7 +1724,7 @@ function mouseEvents(e) {
   }
 }
 //<connect>
-canvas.onmousemove = (e) => {
+render.canvases.render.onmousemove = (e) => {
   cursorStatic = false;
   if (
     (e.buttons === 1 || e.buttons === 2 || e.buttons === 4 || del) &&
@@ -1958,7 +1927,7 @@ canvas.onmousemove = (e) => {
     }
   }
 };
-canvas.ontouchmove = (e) => {
+render.canvases.render.ontouchmove = (e) => {
   if (mobile && connection) {
     let currentCell = WorldToGrid(
       panZoom.toWorld(mouse.controlX, mouse.controlY)
@@ -2158,7 +2127,7 @@ canvas.ontouchmove = (e) => {
 };
 //</connect>
 //<mouse>
-canvas.onmousedown = (e) => {
+render.canvases.render.onmousedown = (e) => {
   if (!lastCell && !music.muted) {
     music.audio.play();
     music.updateMeta();
@@ -2169,7 +2138,7 @@ canvas.onmousedown = (e) => {
     e.preventDefault();
   }
 };
-canvas.onmouseup = (e) => {
+render.canvases.render.onmouseup = (e) => {
   let currentCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
   if (
     currentCell[0] >= 0 &&
@@ -2194,10 +2163,6 @@ canvas.onmouseup = (e) => {
             upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
             lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
           };
-          board.cells[currentCell[0]][currentCell[1]].static = {
-            upperStatic: true,
-            lowerStatic: true,
-          };
         }
         board.connections.applicital[currentCell[0]][
           currentCell[1]
@@ -2216,10 +2181,6 @@ canvas.onmouseup = (e) => {
             board.cells[currentCell[0]][currentCell[1]].bit = {
               upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
               lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
-            };
-            board.cells[currentCell[0]][currentCell[1]].static = {
-              upperStatic: true,
-              lowerStatic: true,
             };
           }
           board.connections.applicital[currentCell[0]][currentCell[1]].type = [
@@ -2255,13 +2216,13 @@ music.audio.onended = (direction = 1) => {
 };
 
 function update() {
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
-  ctx.globalAlpha = 1; // reset alpha
+  render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+  render.ctx.render.globalAlpha = 1; // reset alpha
   if (w !== innerWidth || h !== innerHeight) {
-    w = canvas.width = innerWidth + 8;
-    h = canvas.height = innerHeight + 8;
+    w = render.canvases.render.width = innerWidth + 8;
+    h = render.canvases.render.height = innerHeight + 8;
   } else {
-    ctx.clearRect(0, 0, w, h);
+    render.ctx.render.clearRect(0, 0, w, h);
   }
   if (mouse.wheel !== 0) {
     let scale = 1;
@@ -2271,7 +2232,6 @@ function update() {
       mouse.wheel = 0;
     }
     panZoom.scaleAt(mouse.x, mouse.y, scale); //scale is the change in scale
-    render.magicNumber = (1 / panZoom.scale) ** 2;
   }
   if (mouse.button && ((control && !mobile) || (!connection && mobile))) {
     if (!mouse.drag) {
@@ -2299,7 +2259,7 @@ function update() {
     mouse.lastY = mouse.y;
   }
   //<tick>
-  if (tick.realtime) {
+  if (tick.realtime && tick.sync) {
     tick.tick(true);
   }
   //</tick>
@@ -2375,25 +2335,36 @@ function update() {
   }
   //<render>
   //Grid Render:
-  culling.cell.occlusion.topLeft = WorldToGrid(panZoom.toWorld(0, 0));
-  culling.cell.occlusion.bottomRight = WorldToGrid(
-    panZoom.toWorld(canvas.width, canvas.height)
-  );
-  render.apply()
-  ctx.imageSmoothingEnabled = false
-  ctx.putImageData(render.data, 0, 0)
-  point = GridToWorld([0, 0]);
-  ctx.globalCompositeOperation = 'copy';
-  ctx.drawImage(canvas,
-    0, 0, board.width, board.height, // grab the ImageData part
-    point[0] / render.magicNumber - (gridSize / 2) * panZoom.scale,
-    point[1] / render.magicNumber - (gridSize / 2) * panZoom.scale,
-    gridSize * (1 / size) * board.width,
-    gridSize * (1 / size) * board.height // scale it
-  );
-  ctx.imageSmoothingEnabled = true
-  ctx.globalCompositeOperation = 'source-over';
-  //Grid Lines
+  let topLeft = WorldToGrid(panZoom.toWorld(0, 0))
+  culling.cell.occlusion.topLeft = [Math.max(topLeft[0], 0), Math.max(topLeft[1], 0)]
+  let bottomRight = WorldToGrid(
+    panZoom.toWorld(render.canvases.render.width, render.canvases.render.height)
+  )
+  culling.cell.occlusion.bottomRight = [Math.min(bottomRight[0], board.width), Math.min(bottomRight[1], board.height)]
+  let width = Math.max((culling.cell.occlusion.bottomRight[0] - culling.cell.occlusion.topLeft[0]) + (culling.cell.occlusion.bottomRight[0] < board.width), 0)
+  let height = Math.max((culling.cell.occlusion.bottomRight[1] - culling.cell.occlusion.topLeft[1]) + (culling.cell.occlusion.bottomRight[1] < board.height), 0)
+  if (width != 0 && height != 0) {
+    render.apply()
+    render.canvases.preRender.width = width
+    render.canvases.preRender.height = height
+    render.ctx.preRender.imageSmoothingEnabled = false
+    render.ctx.render.imageSmoothingEnabled = false
+    render.ctx.preRender.putImageData(render.data, -culling.cell.occlusion.topLeft[0], -culling.cell.occlusion.topLeft[1], culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1], render.canvases.preRender.width, render.canvases.preRender.height)
+    point = GridToWorld([culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1]]);
+    render.ctx.render.drawImage(render.canvases.preRender,
+      0, 0, board.width, board.height, // grab the ImageData part
+      point[0] * panZoom.scale * panZoom.scale - (gridSize / 2) * panZoom.scale,
+      point[1] * panZoom.scale * panZoom.scale - (gridSize / 2) * panZoom.scale,
+      gridSize * panZoom.scale * board.width,
+      gridSize * panZoom.scale * board.height // scale it
+    );
+    render.ctx.render.imageSmoothingEnabled = true
+  }
+  else {
+    render.canvases.preRender.width = 0;
+    render.canvases.preRender.height = 0;
+  }
+  //Grid Lines:
   render.drawGrid(gridSize);
   //Horizontal Connection Render:
   culling.connection.horizontal.forEach((item) => {
@@ -2457,6 +2428,7 @@ function update() {
   });
   render.homeDrift();
   //</render>
+  render.frames++
   requestAnimationFrame(update);
 }
 function WorldToGrid(point) {
@@ -2468,8 +2440,8 @@ function WorldToGrid(point) {
 function GridToWorld(point) {
   size = 1 / panZoom.scale;
   return [
-    (point[0] * gridSize - gridSize / 2) * size + panZoom.x * render.magicNumber,
-    (point[1] * gridSize - gridSize / 2) * size + panZoom.y * render.magicNumber,
+    (gridSize * (point[0] - 0.5)) * size + panZoom.x * size * size,
+    (gridSize * (point[1] - 0.5)) * size + panZoom.y * size * size,
   ];
 }
 function getImage(t, b, f, a) {

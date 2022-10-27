@@ -2,27 +2,39 @@
 / in progress
 | done
 
-/ phase 3:
-/ idle tick optimisation
-- chunking render optimisation
-/ mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
-- eggs benedict support
-/ tutorial/help
-| music
-| tickrate control
-- settings (drift, quality...)
-- efficient blueprints in better format than JSON (still support JSON downloads by ctrl clicking download for programmers to make cool stuff)
-/ title screen
-/ make ticks stop when there is nothing to simulate (need to increase efficiency)
-- increase performance by making canvas.onmousemove only defined when a function button is held
+/ interphase 1:
+  - change bit to a boolean
+  - put all variables into main objects
+  / idle tick optimisation
+  / tutorial/help
+  / mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
+  - settings (drift, quality...)
+  - efficient blueprints in better format than JSON (still support JSON downloads by ctrl clicking download for programmers to make cool stuff)
+  / title screen
+  / make ticks stop when there is nothing to simulate (need to increase efficiency)
+  - increase performance by making canvas.onmousemove only defined when a function button is held
+  
+  done:
+    | remove static cell property
+    | render optimisation
+    | tickrate control
+    | music
 
-- phase 4:
-- accounts
-- tokens with copy protection
-- cloud blueprints
-- blueprint sharing
-premium only?:
-- pathfinding tool
-- selections (copy and paste stuff)
-- save selections as components for use anywhere
-- upload/share components 
+
+
+- phase 3:
+  - eggs benedict support
+  - debug cell (type 3)
+  - lightning mode
+  - accounts
+  - tokens
+  - cloud blueprints
+  - blueprint sharing
+  
+  premium only?:
+    - protected premium object
+    - pathfinding connect tool (with ribbon cable)
+    - selections (copy, cut, paste, move, flip, rotate)
+    - save selections as components for use anywhere
+    - upload/share components
+    - blur when tps>fps
