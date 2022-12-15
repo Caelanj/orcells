@@ -1,302 +1,115 @@
 console.log(
   "if you know what your doing and want to help then join the discord:"
 );
-console.log("https://discord.gg/2MZS7XZdXj");
-console.warn(
-  "attempting to get free premium will result in a permenant ban"
-);
+console.log("https://discord.gg/Je3HeYsHF2");
+console.log("%cAttempting To Get Free Premium Will Result In A Permenant Ban", "background: repeating-linear-gradient(45deg, #8f0000, #8f0000 10px, #ff0000 10px, #ff0000 15px); color: yellow; font-size: x-large;font-family: junegull;text-align: center;");
 //<parameters>
-var board = {
-  //DO NOT CHANGE WHILE RUNNING, instead use: board.resize(width, height)
-  width: 9, //starting width of the cell grid
-  height: 9, //starting height of the cell grid
-  default2Cell: false //if the default cell type is 1 or 2
-}
-var render = {
-  quality: 2, //image quality from 0-2 (0 being don't draw at all and 2 being vector quality)
-  drift: 50 //how far to drift when letting go after moving and when returning home
-}
-var tick = {
-  realtime: false, //if ticks should be run in realtime as fast as possible or on a clock
-  rate: 100, //time to wait between each tick in miliseconds in consistent mode
-  //better off changing with tick.set(realtime, tickRate)
-  recovery: false, //if the program should try to recover if it can't keep up
-  paused: false, //if the simulation should be paused by default
-  sync: false //if to run ticks in sync with frames in realtime mode (way faster if false)
-}
-var record = {
-  enabled: true //if recording is enabled, start with: + stop with: -
-}
-var music = {
-  muted: true //if soundtracks should be muted by default
-}
+var
+  board = { //The state of the board and it's functions
+    //DO NOT CHANGE WHILE RUNNING, instead use: board.resize(width, height)
+    width: 9, //starting width of the cell grid
+    height: 9, //starting height of the cell grid
+    default2Cell: false //if the default cell type is 1 or 2
+  },
+  render = { //The state of rendering and it's functions
+    quality: { false: 2, true: 1 }, //false is desktop device render quality, true is mobile device render quality, render quality is from 0-2 (0 being don't draw at all and 2 being full quality)
+    drift: 50 //how far to drift when letting go after moving and when returning home
+  },
+  tick = { //The state of the tickrate of the simulation and it's functions
+    realtime: false, //if ticks should be run in realtime as fast as possible or on a clock
+    rate: 100, //time to wait between each tick in miliseconds in consistent mode
+    //better off changing above with tick.set(realtime, tickRate)
+    recovery: false, //if the program should try to recover if it can't keep up
+    paused: false, //if the simulation should be paused by default
+    sync: false //if to run ticks in sync with frames in realtime mode (way faster if false)
+  },
+  record = { //The state of recording and it's functions
+    enabled: true //if recording is enabled, start with: + stop with: -
+  },
+  music = { //The state of the music and it's functions
+    muted: true //if soundtracks should be muted by default
+  },
+  debug = { //Whether or not debug mode is enabled and the function to change that
+    enabled: false //logs FPS and TPS to console
+  },
 //</parameters>
-//main objects
-var file = {};
-var utility = {}; //useful function like distance between 2 points and degrees to radians
-var ui = {};
-var core = {}; //the core functions
-
-render.canvases = {};
-render.ctx = {};
-render.canvases.svg = document.getElementById("svg");
-render.canvases.preRender = document.getElementById("preRender");
-render.canvases.render = document.getElementById("render");
-
-var control = false;
-var alt = false;
-var shift = false;
-var connection = false;
-var size = 0.5;
-render.driftCharge = 0;
-render.driftx = 0;
-render.drifty = 0;
-tick.drift = 0;
-var extra = 1; //an extra variable that can be set to anything for debugging
-render.homeCharge = 0;
-var idle = true;
+//Main Objects
+file = {}, //The file handling functions that save and load boards to and from files
+utility = {}, //useful functions like distance between 2 points and degrees to radians
+ui = {}, //The functions relating to changing the user interface
+culling = {}, //Extra data that helps increase the performance of things like rendering and performing ticks
+core = {} //The core functionality of Orcells
 //<mobile>
-if (
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  )
-) {
-  // true for mobile device
-  var mobile = true;
-  render.quality = 1;
-  document.getElementById("mobileControls").style.visibility = "visible";
+core.mobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 //Detect if device is touch screen
+if (core.mobile) {
+  document.getElementById("mobileControls").style.visibility = "inherit";
 } else {
-  // false for not mobile device
-  var mobile = false;
+  document.getElementById("forceRect").style.pointerEvents = "none";
+  document.getElementById("connectRect").style.pointerEvents = "none";
 }
 //</mobile>
-tick.driftAscention = Array(20).fill(0);
-var lastDrift = 0;
-var lastCell;
-var cursorStatic = false;
-var newGrid;
-//<switch music.soundtracks>
-music.soundtracks = [
-  "https://drive.google.com/uc?export=download&id=1SEhtmPk-VuIYk9EzTfnretk62DzIWK3k",
-  "https://drive.google.com/uc?export=download&id=1In6dTH9f4jT5QjMzqmMreAm5oZ6pLdbf",
-  "https://drive.google.com/uc?export=download&id=1_UASirXo1GB1BUV24Jk4MYz71fQW0kXQ",
-  "https://drive.google.com/uc?export=download&id=1UGV2Mvj0816ss_qOy495CTnIhOIoNl8-",
-  "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
-  "https://drive.google.com/uc?export=download&id=1_lrAyHc9RkPCoZ03rPdLpX8PLJTMdf1c",
-  "https://drive.google.com/uc?export=download&id=1cq0KR7B_3Dbku3668iSCtE5Q-Fbdnsmd",
-  "https://drive.google.com/uc?export=download&id=1NACj9P4KPASmT9mDBvuuJ4UcnH7IYizr",
-  "https://drive.google.com/uc?export=download&id=1FIWCweWhOkJgBjq8xhbs9RERo9fby_YK",
-  "https://drive.google.com/uc?export=download&id=1n3AwpuPk72-bxCENutLuGhjc5tyg2ukF",
-  "https://drive.google.com/uc?export=download&id=16zToeg8eqVK9nciCMdR0rzDzX5pP6hEw",
-]
-music.soundtrackMeta = [
-  { title: "Labyrinth Of Mirrors", author: "Substan", album: "Labyrinth Of Mirrors (24bit)" },
-  { title: "Wide Plain", author: "Substan", album: "Digitales IV" },
-  { title: "Paper Pete", author: "Lifeformed", album: "Immerse" },
-  { title: "Goodbye Snake", author: "Kettel", album: "Nerves Of Time Vol. 4" },
-  { title: "Select", author: "Unknown", album: "Unkown" },
-  { title: "The Tide Is Rising", author: "Neurotech", album: "Evasive" },
-  { title: "Compass", author: "Neurotech", album: "Evasive" },
-  { title: "Hydra", author: "Neuroaxis", album: "The Change Of Constant" },
-  { title: "The Reversal", author: "Neuroaxis", album: "The Change Of Constant" },
-  { title: "Genome", author: "Neuroaxis", album: "The Lockdown Sessions" },
-  { title: "Corporate Japan", author: "Biocratic", album: "Beets 4" }
-]
-//</switch>
-var tiles = [
-  "T1B1",
-  "T2B2",
-  "Cross",
-  "BT2",
-  "BT1",
-  "TB2",
-  "TB1",
-  "T0B1",
-  "T0B2",
-  "T1B0",
-  "T1B1F",
-  "T1B2",
-  "T1B2F",
-  "T2B0",
-  "T2B1",
-  "T2B1F",
-  "T2B2F",
-];
-for (var i = 0; i < tiles.length; i++) {
-  eval("var svg" + tiles[i] + " = new Image();");
-  eval("var img" + tiles[i] + " = new Image();");
-}
-var helpMenu = false;
-var del = false;
-var forceOn = false;
-var forceOff = false;
-var first = true;
-var lastTarget = null;
-var lastTouches = [{ pageX: 0, pageY: 0 }];
-var w = render.canvases.render.width;
-var h = render.canvases.render.height;
-var start;
-var nextAt;
-var ticks = 0;
-var quantities = document.getElementById("tickRateControl");
-var culling = {
-  tick: [],
-  tick2: [],
-  connection: {
-    horizontal: [],
-    vertical: [],
-    applicital: board.default2Cell
-      ? Array(board.width * board.height)
-        .fill(0)
-        .map((e, i) => {
-          return [Math.floor(i / board.width), i % board.width];
-        })
-      : [],
-  },
-  cell: {
-    connectedFrom: Array(board.width)
-      .fill(null)
-      .map(_ =>
-        Array(board.height)
-          .fill(null)
-          .map(_ => {
-            return [];
-          })
-      ), occlusion: { topLeft: [], bottomRight: [] }
-  },
-  map: _ => {
-    let horizontalConnectionCulling = [];
-    let verticalConnectionCulling = [];
-    let applicitalConnectionCulling = [];
-    let indeX = 0;
-    for (let x2 = 0; x2 < board.width; x2++) {
-      for (let y2 = 0; y2 < board.height; y2++) {
-        board.isConnected([x2, y2])
-      }
-    }
-    indeX = 0;
-    board.connections.horizontal.forEach((a, i) => {
-      indeX = i;
-      a.forEach((b, j) => {
-        if (b.type.upperType !== 0 || b.type.lowerType !== 0) {
-          horizontalConnectionCulling.push([indeX, j]);
-        }
-      });
-    });
-    culling.connection.horizontal = horizontalConnectionCulling;
-    indeX = 0;
-    board.connections.vertical.forEach((a, i) => {
-      indeX = i;
-      a.forEach((b, j) => {
-        if (b.type.upperType !== 0 || b.type.lowerType !== 0) {
-          verticalConnectionCulling.push([indeX, j]);
-        }
-      });
-    });
-    culling.connection.vertical = verticalConnectionCulling;
-    indexX = 0;
-    board.connections.applicital.forEach((a, i) => {
-      indeX = i;
-      a.forEach((b, j) => {
-        if (b.type !== 0) {
-          applicitalConnectionCulling.push([indeX, j]);
-        }
-      });
-    });
-    culling.connection.applicital = applicitalConnectionCulling;
-    culling.checkIdle();
-  },
-  checkIdle: (_ => {
-    if (idle && !(culling.tick.length + culling.tick2.length == 0)) {
-      idle = false
-      tick.skipCatchup();
-      tick.tick();
-    }
-    if (!idle && (culling.tick.length + culling.tick2.length == 0)) {
-      tick.skipCatchup();
-    }
-    idle = culling.tick.length + culling.tick2.length == 0;
-    if (idle) {
-      document.getElementById("idleText").style.visibility = "visible";
-      return;
-    } else {
-      document.getElementById("idleText").style.visibility = "hidden";
-    }
-  }),
-};
-board.cells = Array(board.width)
-  .fill(null)
-  .map(_ =>
-    Array(board.height)
-      .fill(null)
-      .map(_ => {
-        return {
-          type: board.default2Cell ? 2 : 1,
-          bit: board.default2Cell ? { upperBit: 0, lowerBit: 0 } : 0,
-          idle: board.default2Cell ? { upperIdle: true, lowerIdle: true } : true,
-        };
-      })
-  );
-board.defaults = {
-  cell: _ => {
+//<initialization>
+//Board Object Initialization
+board.defaults = { //Defaults for various things
+  cell: _ => { //Default state of a cell
     return {
       type: board.default2Cell ? 2 : 1,
-      bit: board.default2Cell ? { upperBit: 0, lowerBit: 0 } : 0,
-      idle: board.default2Cell ? { upperIdle: true, lowerIdle: true } : true,
+      bit: board.default2Cell ? { upperBit: false, lowerBit: false } : false,
     };
   },
-  connection: _ => {
+  connection: _ => { //Default state of a connection
     return {
       type: { upperType: 0, lowerType: 0 },
       flipped: false,
       mixed: false,
     };
   },
-  applicitalConnection: _ => {
+  applicitalConnection: _ => { //Default state of an applicital connection
     return { type: board.default2Cell ? 3 : 0, flipped: false };
   },
 };
-board.connections = {
-  horizontal: Array(board.width)
+board.cells = Array(board.width) //Init the board with a grid of cells
+  .fill(null)
+  .map(_ =>
+    Array(board.height)
+      .fill(null)
+      .map(_ => {
+        return board.defaults.cell()
+      })
+  );
+board.connections = { //Init the board with empty connections
+  horizontal: Array(board.width) //Init horizontal connections
     .fill(null)
     .map(_ =>
       Array(board.height)
         .fill(null)
         .map(_ => {
-          return {
-            type: { upperType: 0, lowerType: 0 },
-            flipped: false,
-            mixed: false,
-          };
+          return board.defaults.connection()
         })
     ),
-  vertical: Array(board.width)
+  vertical: Array(board.width) //Init vertical connections
     .fill(null)
     .map(_ =>
       Array(board.height)
         .fill(null)
         .map(_ => {
-          return {
-            type: { upperType: 0, lowerType: 0 },
-            flipped: false,
-            mixed: false,
-          };
+          return board.defaults.connection()
         })
     ),
-  applicital: Array(board.width)
+  applicital: Array(board.width) //Init applicital connections
     .fill(null)
     .map(_ =>
       Array(board.height)
         .fill(null)
         .map(_ => {
-          return { type: board.default2Cell ? 3 : 0, flipped: false };
+          return board.defaults.applicitalConnection()
         })
     ),
 };
-board.inBounds = ((point) => {
+board.inBounds = ((point) => { //Check if a cell is within the board
   return (point[0] < board.width && point[0] >= 0 && point[1] < board.height && point[1] >= 0)
 })
-board.resize = ((width, height) => {
+board.resize = ((width, height) => { //Resize the board
   if (height > board.height) {
     board.cells = board.cells.map((e) => {
       return e.concat(
@@ -412,9 +225,8 @@ board.resize = ((width, height) => {
     board.width = width;
   }
   culling.map();
-  render.generateData();
 });
-board.isConnected = ((target, shift = [0, 0]) => {
+board.isConnected = ((target, shift = [0, 0]) => { //Check if a cell is connected to any other cells
   let tx = target[0] - shift[0];
   let ty = target[1] - shift[1];
   let upperConnected = false;
@@ -423,13 +235,11 @@ board.isConnected = ((target, shift = [0, 0]) => {
   if (board.connections.horizontal[tx][ty].type.upperType != 0 &&
     board.connections.horizontal[tx][ty].flipped) {
     upperConnected = true
-    //culling.cell.connectedFrom[tx][ty].push("++!")
   }
   if (board.connections.horizontal[tx][ty].type.lowerType != 0 &&
     board.connections.horizontal[tx][ty].flipped !=
     board.connections.horizontal[tx][ty].mixed) {
     lowerConnected = true
-    //culling.cell.connectedFrom[tx][ty].push("-+!")
   }
   //from bottom
   upperConnected ||=
@@ -507,53 +317,62 @@ board.isConnected = ((target, shift = [0, 0]) => {
   }
   culling.checkIdle();
 })
-var lastScale = 0.5
-const panZoom = {
-  x: mobile ? 0 : 464,
-  y: mobile ? 0 : 140,
-  scale: mobile ? 1 : 0.5,
+//Render Object Initialization
+render.topLeft = { x: 0, y: 0 }; // holds top left of render.canvases.render in world coords.
+render.canvases = {};
+render.ctx = {};
+render.svg = {};
+render.img = {};
+render.canvases.svg = document.getElementById("svg");
+render.canvases.preRender = document.getElementById("preRender");
+render.canvases.render = document.getElementById("render");
+render.ctx.preRender = render.canvases.preRender.getContext("2d");
+render.ctx.render = render.canvases.render.getContext("2d");
+render.changed = false;
+render.w = render.canvases.render.width;
+render.h = render.canvases.render.height;
+render.frames = 0;
+render.driftCharge = 0;
+render.driftx = 0;
+render.drifty = 0;
+render.homeCharge = 0;
+render.gridLimit = 512; // max grid lines
+render.gridSize = 128; //world pixels
+render.scaleRate = 1.02; // Closer to 1 slower rate of change
+render.lastScale = 0.5
+render.quality = render.quality[core.mobile];
+render.size = core.mobile ? 1 : 2;
+render.panZoom = {
+  x: core.mobile ? 0 : 464,
+  y: core.mobile ? 0 : 140,
+  scale: core.mobile ? 1 : 0.5,
   apply() {
     render.ctx.render.setTransform(this.scale, 0, 0, this.scale, this.x, this.y);
   },
   scaleAt(x, y, sc) {
     // x & y are screen coords, not world
-    if (
-      Math.floor(Math.log2(lastScale)) != Math.floor(Math.log2(this.scale)) &&
-      !mobile
-    ) {
-      render.rasterize();
-    }
-    if ((sc > 1 && !(Math.min(render.canvases.render.width, render.canvases.render.height) < gridSize * panZoom.scale)) || (sc < 1 && !(Math.max(render.canvases.render.width, render.canvases.render.height) / 400 > gridSize * panZoom.scale))) {
+    if ((sc > 1 && !(Math.min(render.canvases.render.width, render.canvases.render.height) < render.gridSize * render.panZoom.scale)) || (sc < 1 && !(Math.max(render.canvases.render.width, render.canvases.render.height) / 400 > render.gridSize * render.panZoom.scale))) {
       this.scale *= sc;
       this.x = x - (x - this.x) * sc;
       this.y = y - (y - this.y) * sc;
     }
-    lastScale = this.scale
+    if (
+      Math.floor(Math.log2(render.lastScale)) != Math.floor(Math.log2(this.scale)) &&
+      !core.mobile
+    ) {
+      render.rasterize();
+    }
+    render.lastScale = this.scale
+    render.size = 1 / this.scale;
   },
-  toWorld(x, y, point = {}) {
-    // converts from screen coords to world coords
+  toWorld(x, y, point = {}) { //converts from screen coords to world coords
     const inv = 1 / this.scale;
     point.x = (x - this.x) * inv;
     point.y = (y - this.y) * inv;
     return point;
   },
 };
-var mouse = {
-  x: 0,
-  y: 0,
-  controlX: 0,
-  controlY: 0,
-  button: false,
-  wheel: 0,
-  lastX: 0,
-  lastY: 0,
-  drag: false,
-};
-const gridLimit = 512; // max grid lines
-var gridSize = 128; //world pixels
-var scaleRate = 1.02; // Closer to 1 slower rate of change
-const topLeft = { x: 0, y: 0 }; // holds top left of render.canvases.render in world coords.
-const svgToPng = (svgDataurl, width, height) =>
+render.svgToPng = (svgDataurl, width, height) =>  //rasterizes svg to png at the specified resolution
   new Promise((resolve, reject) => {
     let ctx;
     let img;
@@ -568,136 +387,102 @@ const svgToPng = (svgDataurl, width, height) =>
       resolve(render.canvases.svg.toDataURL("image/png"));
     };
   });
-//<initialization>
-//render
-render.ctx.preRender = render.canvases.preRender.getContext("2d");
-render.ctx.render = render.canvases.render.getContext("2d");
-render.frames = 0;
-setInterval((_ => {
-  console.log("FPS: " + render.frames, " TPS: " + tick.frames)
-  render.frames = 0;
-  tick.frames = 0;
-}), 1000)
-render.getColour = ((state, type) => {
+render.getColour = ((state, type) => { //Get the colour a cell should render based on it's state
   switch (type) {
-    case 1:
-      switch (state) {
-        case 0:
-          return [0, 0, 0, 255];
-          break;
-        case 1:
-          return [238, 238, 238, 255];
-          break;
-        default:
-          return [255, 0, 255, 0];
+    case 1: //If it's a type 1 cell
+      if (state) {
+        return [238, 238, 238, 255]; //Return off white if the cell's bit is on
+      } else {
+        return [0, 0, 0, 255]; //Return black if the cell's bit is off
       }
-    case 2:
-      switch (state.upperBit) {
-        case 0:
-          switch (state.lowerBit) {
-            case 0:
-              return [0, 0, 0, 255];
-              break;
-            case 1:
-              return [0, 0, 255, 255];
-              break;
-            default:
-              return [255, 0, 255, 0];
-              break;
-          }
-        case 1:
-          switch (state.lowerBit) {
-            case 0:
-              return [255, 0, 0, 255];
-              break;
-            case 1:
-              return [238, 238, 238, 255];
-              break;
-            default:
-              return [255, 0, 255, 0];
-              break;
-          }
-        default:
-          return [255, 0, 255, 0];
-          break;
+    case 2: //If it's a type 2 cell
+      if (state.upperBit) { //If the top bit is on
+        if (state.lowerBit) {
+          return [238, 238, 238, 255]; //If both bits are on return off white
+        } else {
+          return [255, 0, 0, 255]; //If only the upper bit is on return red
+        }
+      } else { //If the top bit is off
+        if (state.lowerBit) {
+          return [0, 0, 255, 255]; //If only the lower bit is on return blue
+        } else {
+          return [0, 0, 0, 255]; //If neither bit is on return black
+        }
       }
-    default:
-      return [255, 0, 255, 0];
-      break;
   }
 })
-render.generateData = (
+render.generateData = ( //Convert the board state to cell colours to put into the temp imageData array
   _ => {
     let newData = []
-    for (let y = 0; y < board.height; y++) {
+    for (let y = 0; y < board.height; y++) { //Loop over each cell
       for (let x = 0; x < board.width; x++) {
-        newData = newData.concat(render.getColour(board.cells[x][y].bit, board.cells[x][y].type))
+        newData = newData.concat(render.getColour(board.cells[x][y].bit, board.cells[x][y].type)) //Take the value of that cell, convert it to a colour, put it into the array
       }
     }
     render.new = newData
-    render.changed = true
+    render.changed = true; //Tell the render engine that changes have been made and need to be applied with render.apply()
   })
+render.generateData()
 render.coordToIndex = ((point) => {
   return (point[0] * 4) + (point[1] * board.width * 4)
 })
-render.generateData()
-render.apply = (_ => {
+render.apply = (_ => { //Applies the changes in colour made by render.setCell or render.generateData to the imageData
   if (render.changed) {
-    render.data = new ImageData(new Uint8ClampedArray(render.new), board.width, board.height)
+    render.data = new ImageData(new Uint8ClampedArray(render.new), board.width, board.height) //Convert the temp array data into imageData
     render.changed = false;
   }
 })
 render.apply()
 render.changed = false;
-render.setCell = ((point, colour) => {
-  let index = render.coordToIndex(point)
-  if (!(render.new.splice(index, 4, ...colour) == colour)) {
-    render.changed = true;
+render.setCell = ((point, colour) => { //Set the value of a cell's colour in the imageData without editing it's board value
+  let index = render.coordToIndex(point) //Work out the cell's place in the temp imageData
+  if ((render.new.splice(index, 4, ...colour) != colour)) { //If the colour of the cell has changed then tell the rendering engine to remap the imageData
+    render.changed = true; //Tell the render engine that changes have been made and need to be applied with render.apply()
   }
 })
-render.homeDrift = (_ => {
-  if (render.homeCharge === 1) {
-    panZoom.x = mobile ? 0 : 464;
-    panZoom.y = mobile ? 0 : 140;
-    panZoom.scale = mobile ? 1 : 0.5;
+render.homeDrift = (_ => { //Make the camera drift over to the home position smoothly
+  if (render.homeCharge === 1) { //If we are right at the end of the transition then teleport to the destination
+    render.panZoom.x = core.mobile ? 0 : 464;
+    render.panZoom.y = core.mobile ? 0 : 140;
+    render.panZoom.scale = core.mobile ? 1 : 0.5;
     render.homeCharge = 0;
   }
-  if (render.homeCharge > 2) {
+  if (render.homeCharge > 2) { //Smoothly pull toward the home position
     let homeSpeed =
       render.drift - Math.sin(utility.rad((render.drift - render.homeCharge) * (90 / render.drift))) * render.drift;
-    panZoom.x -= (panZoom.x - (mobile ? 0 : 464)) / homeSpeed;
-    panZoom.y -= (panZoom.y - (mobile ? 0 : 140)) / homeSpeed;
-    panZoom.scale -= (panZoom.scale - (mobile ? 1 : 0.5)) / homeSpeed;
+    render.panZoom.x -= (render.panZoom.x - (core.mobile ? 0 : 464)) / homeSpeed;
+    render.panZoom.y -= (render.panZoom.y - (core.mobile ? 0 : 140)) / homeSpeed;
+    render.panZoom.scale -= (render.panZoom.scale - (core.mobile ? 1 : 0.5)) / homeSpeed;
     render.homeCharge--;
   }
 })
 render.home = (_ => {
   render.homeCharge = render.drift;
 })
-render.setMoving = ((status) => {
+render.setMoving = ((status) => { //Set whether or not the board has been grabbed for movement
   if (status) {
-    control = true;
+    core.control = true;
     render.canvases.render.style.cursor = "move";
   } else {
-    control = false;
+    core.control = false;
     render.canvases.render.style.cursor = "default";
   }
 })
-render.drawGrid = ((gridScreenSize = 128) => {
-  var size,
+render.drawGrid = ((gridScreenSize = 128) => { //The core function that the whole project started with, it draws the grid, it's a bit of a stolen black box
+  let size,
     x,
     y,
     gridScale = gridScreenSize;
-  size = Math.max(w, h) / panZoom.scale + gridScale * 2;
-  panZoom.toWorld(0, 0, topLeft);
-  x = Math.floor(topLeft.x / gridScale) * gridScale;
-  y = Math.floor(topLeft.y / gridScale) * gridScale;
-  if (size / gridScale > gridLimit) {
-    size = gridScale * gridLimit;
+  size = Math.max(render.w, render.h) / render.panZoom.scale + gridScale * 2;
+  render.panZoom.toWorld(0, 0, render.topLeft);
+  x = Math.floor(render.topLeft.x / gridScale) * gridScale;
+  y = Math.floor(render.topLeft.y / gridScale) * gridScale;
+  if (size / gridScale > render.gridLimit) {
+    size = gridScale * render.gridLimit;
   }
-  panZoom.apply();
-  render.ctx.render.lineWidth = panZoom.scale * 10;
-  render.ctx.render.strokeStyle = "#333333";
+  render.panZoom.apply();
+  render.ctx.render.lineWidth = render.panZoom.scale * 10; //Grid line stroke width
+  render.ctx.render.strokeStyle = "#333333"; //Grid line colour
   render.ctx.render.beginPath();
   for (i = 0; i < size; i += gridScale) {
     render.ctx.render.moveTo(x + i, y);
@@ -707,103 +492,209 @@ render.drawGrid = ((gridScreenSize = 128) => {
   }
   render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
   render.ctx.render.stroke();
-  if (first) {
-    first = false;
-    render.rasterize();
-  }
 })
 render.draw = {}
 render.draw.connection = ((point, type, rotate, axis, flipped = false) => {
-  point = GridToWorld(point);
-  size = panZoom.scale;
-  render.ctx.render.save();
-  let image = new Image();
+  point = core.GridToWorld(point); //Convert the grid coordinates to the draw coordinates
+  render.ctx.render.save(); //Save the canvas state
   switch (axis) {
-    case 1: //Vertical
+    case 1: //Vertical translation
       render.ctx.render.translate(
-        point[0] * panZoom.scale * panZoom.scale + (gridSize / 2) * panZoom.scale + size,
-        point[1] * panZoom.scale * panZoom.scale + size
+        point[0] * render.panZoom.scale * render.panZoom.scale + (render.gridSize / 2) * render.panZoom.scale + render.panZoom.scale,
+        point[1] * render.panZoom.scale * render.panZoom.scale + render.panZoom.scale
       );
       break;
-    case 2: //Horizontal
+    case 2: //Horizontal translation
       render.ctx.render.translate(
-        point[0] * panZoom.scale * panZoom.scale + size,
-        point[1] * panZoom.scale * panZoom.scale + (gridSize / 2) * panZoom.scale + size
+        point[0] * render.panZoom.scale * render.panZoom.scale + render.panZoom.scale,
+        point[1] * render.panZoom.scale * render.panZoom.scale + (render.gridSize / 2) * render.panZoom.scale + render.panZoom.scale
       );
       break;
-    case 3: //Applicital
+    case 3: //Applicital translation
       render.ctx.render.translate(
-        point[0] * panZoom.scale * panZoom.scale + size,
-        point[1] * panZoom.scale * panZoom.scale + size
+        point[0] * render.panZoom.scale * render.panZoom.scale + render.panZoom.scale,
+        point[1] * render.panZoom.scale * render.panZoom.scale + render.panZoom.scale
       );
       break;
   }
-  image = getImage(type.upperType, type.lowerType, flipped, axis == 3);
-  render.ctx.render.rotate(utility.rad(rotate * 90));
+  image = render.getImage(type.upperType, type.lowerType, flipped, axis == 3); //Get the texture of the connection to be drawn
+  render.ctx.render.rotate(utility.rad(rotate * 90)); //Rotate the image to the right angle
   render.ctx.render.translate(
-    -((panZoom.scale * gridSize) / 2),
-    -(panZoom.scale * gridSize) / 2
+    -((render.panZoom.scale * render.gridSize) / 2),
+    -(render.panZoom.scale * render.gridSize) / 2
   );
-  render.ctx.render.drawImage(
+  render.ctx.render.drawImage( //Draw the connection
     image,
     0,
     0,
-    panZoom.scale * gridSize,
-    panZoom.scale * gridSize
+    render.panZoom.scale * render.gridSize,
+    render.panZoom.scale * render.gridSize
   );
-  render.ctx.render.restore();
+  render.ctx.render.restore(); //Restore the canvas state
 })
-render.rasterize = (_ => {
-  imgScale = Math.ceil(gridSize * size) * render.quality;
-  for (var i = 0; i < tiles.length; i++) {
-    eval(
-      "svgToPng(svg" +
-      tiles[i] +
-      ".src, imgScale, imgScale).then((e) => { img" +
-      tiles[i] +
-      ".src = e })"
-    );
+render.getImage = ((t, b, f, a) => { //Get the texture for a connection
+  if (a) { //If applicital
+    switch (t) { //Check top type
+      case 1: //Buffer
+        if (f) { //Check if flipped
+          return render.img.BT1; //Bottom to Top Buffer
+        } else {
+          return render.img.TB1; //Top to Bottom Buffer
+        }
+      case 2: //Not
+        if (f) { //Check if flipped
+          return render.img.BT2; //Bottom to Top Not
+        } else {
+          return render.img.TB2; //Top to Bottom Not
+        }
+      case 3: //Empty
+        return render.img.Cross; //Empty Cross
+      default:
+        return;
+    }
+  } else { //If not applicital
+    switch (t) { //Check top type
+      case 0: //Top Blank
+        switch (b) { //Check bottom type
+          case 1: //Bottom Buffer
+            return render.img.T0B1; //Bottom Buffer
+          case 2: //Bottom Not
+            return render.img.T0B2; //Bottom Not
+          default:
+            return;
+        }
+      case 1: //Top Buffer
+        switch (b) { //Check bottom type
+          case 0: //Bottom Empty
+            return render.img.T1B0;
+          case 1: //Bottom Buffer
+            if (f) { //Check if bottom buffer is flipped
+              return render.img.T1B1F; //Top Buffer and Bottom Flipped Buffer
+            } else {
+              return render.img.T1B1; //Normal Buffer
+            }
+          case 2: //Bottom Not
+            if (f) {  //Check if bottom not is flipped
+              return render.img.T1B2F; //Top Buffer and Bottom Flipped Not
+            } else {
+              return render.img.T1B2; //Top Buffer and Bottom Not
+            }
+          default:
+            return;
+        }
+      case 2: //Top Not
+        switch (b) { //Check bottom type
+          case 0: //Bottom Empty
+            return render.img.T2B0; //Top Not
+          case 1: //Bottom Buffer
+            if (f) { //Check if bottom buffer is flipped
+              return render.img.T2B1F; //Top Not and Bottom Flipped Buffer
+            } else {
+              return render.img.T2B1; //Top Not and Bottom Buffer
+            }
+          case 2: //Bottom Not
+            if (f) { //Check if bottom not is flipped
+              return render.img.T2B2F; //Top Not and Bottom Flipped Not
+            } else {
+              return render.img.T2B2; //Normal Not
+            }
+          default:
+            return;
+        }
+      default:
+        return;
+    }
   }
 })
-//tick
+render.rasterize = (_ => { //Convert all SVG textures to bitmap to draw faster
+  if (debug.enabled) {
+    console.log("Rasterizing At Scale: " + imgScale)
+  }
+  for (let i = 0; i < render.tiles.length; i++) { //Loop over each texture
+    render.rasterizeOne(i)
+  }
+})
+render.rasterizeOne = ((TileID) => { //Convert a single SVG texture to bitmap to draw faster
+  imgScale = Math.ceil(render.gridSize * render.panZoom.scale) * render.quality; //Calculate what resolution to rasterize textures at
+  eval( //Rasterize that texure
+    "render.svgToPng(render.svg." +
+    render.tiles[TileID] +
+    ".src, imgScale, imgScale).then((e) => { render.img." +
+    render.tiles[TileID] +
+    ".src = e;ui.load.rasterize();});"
+  );
+})
+render.tiles = [
+  "T1B1",
+  "T2B2",
+  "Cross",
+  "BT2",
+  "BT1",
+  "TB2",
+  "TB1",
+  "T0B1",
+  "T0B2",
+  "T1B0",
+  "T1B1F",
+  "T1B2",
+  "T1B2F",
+  "T2B0",
+  "T2B1",
+  "T2B1F",
+  "T2B2F",
+];
+for (let i = 0; i < render.tiles.length; i++) {
+  eval("render.svg." + render.tiles[i] + " = new Image();");
+  eval("render.img." + render.tiles[i] + " = new Image();");
+}
+//Tick Object Initialization
+tick.start;
+tick.nextAt;
+tick.ticks = 0;
+tick.drift = 0;
+tick.idle = true;
+tick.driftAscention = Array(20).fill(0);
+tick.lastDrift = 0;
+tick.newGrid;
 tick.frames = 0;
-tick.pause = (_ => {
+tick.pause = (_ => { //Pause the simulation
   tick.paused = true;
   document.getElementById("pause").style.visibility = "hidden";
   document.getElementById("play").style.visibility = "inherit";
   tick.skipCatchup();
 })
-tick.play = (_ => {
+tick.play = (_ => { //Resume the simulation
   tick.paused = false;
   document.getElementById("pause").style.visibility = "inherit";
   document.getElementById("play").style.visibility = "hidden";
   tick.skipCatchup();
   tick.tick();
 })
-tick.realtimeCheck = (_ => {
-  if (quantities.children[2].value <= 0) {
-    quantities.children[2].value = 1;
+tick.realtimeCheck = (_ => { //Check if the realtime checkbox is ticked
+  ui.quantities = document.getElementById("tickRateControl");
+  if (ui.quantities.children[2].value <= 0) {
+    ui.quantities.children[2].value = 1;
   }
   if (document.getElementById("realtimeCheckBox").checked) {
-    ui.flyOut();
-    tick.set(true);
+    ui.flyOut(); //Make the tickrate control fly off screen
+    tick.set(true); //Set to realtime mode
   } else {
-    ui.flyIn();
-    tick.set(false, (1 / quantities.children[2].value) * 1000);
+    ui.flyIn(); //Make the tickrate control fly back on screen
+    tick.set(false, (1 / ui.quantities.children[2].value) * 1000); //Set to consistent mode
   }
 })
-tick.toggleRealtime = (_ => {
+tick.toggleRealtime = (_ => { //Toggle realtime mode
   document.getElementById("realtimeCheckBox").checked =
     !document.getElementById("realtimeCheckBox").checked;
   tick.realtimeCheck();
 })
-tick.skipCatchup = (_ => {
-  ticks = 0;
-  start = new Date().getTime();
+tick.skipCatchup = (_ => { //Skip the simulation trying to catch up when behind on consistent mode
+  tick.ticks = 0;
+  tick.start = new Date().getTime();
   document.getElementById("behindDiv").style.visibility = "hidden";
   document.getElementById("aheadDiv").style.visibility = "hidden";
 })
-tick.set = ((setRealTime, setTickRate) => {
+tick.set = ((setRealTime, setTickRate) => { //Set the tickrate
   tick.skipCatchup();
   tick.rate = setTickRate;
   if (tick.realtime && !setRealTime) {
@@ -813,267 +704,267 @@ tick.set = ((setRealTime, setTickRate) => {
     tick.realtime = setRealTime;
   }
 })
-tick.tick = ((auto = true) => {
-  if ((!auto || !tick.paused) && !idle) {
+tick.tick = ((auto = true) => { //Perform a tick
+  if ((!auto || !tick.paused) && !tick.idle) {
     lastTick = Date.now();
-    newGrid = JSON.parse(JSON.stringify(board.cells));
+    tick.newGrid = JSON.parse(JSON.stringify(board.cells));
     culling.tick.forEach((item) => {
-      innerTick1Old(item);
+      tick.innerTick1Old(item);
     });
     culling.tick2.forEach((item) => {
       if (!auto || !tick.paused) {
         let x2 = item[0];
         let y2 = item[1];
-        let bit = 0;
+        let bit = false;
         switch (item[2]) {
           case 0:
             if (x2 > 0) {
               switch (board.cells[x2 - 1][y2].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2 - 1][y2].type.lowerType ==
                       1 &&
                       board.connections.horizontal[x2 - 1][y2].flipped ==
                       board.connections.horizontal[x2 - 1][y2].mixed &&
-                      board.cells[x2 - 1][y2].bit == 1) ||
+                      board.cells[x2 - 1][y2].bit) ||
                     (board.connections.horizontal[x2 - 1][y2].type.lowerType ==
                       2 &&
                       board.connections.horizontal[x2 - 1][y2].flipped ==
                       board.connections.horizontal[x2 - 1][y2].mixed &&
-                      board.cells[x2 - 1][y2].bit == 0);
+                      !board.cells[x2 - 1][y2].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2 - 1][y2].type.lowerType ==
                       1 &&
                       board.connections.horizontal[x2 - 1][y2].flipped ==
                       board.connections.horizontal[x2 - 1][y2].mixed &&
-                      board.cells[x2 - 1][y2].bit.lowerBit == 1) ||
+                      board.cells[x2 - 1][y2].bit.lowerBit) ||
                     (board.connections.horizontal[x2 - 1][y2].type.lowerType ==
                       2 &&
                       board.connections.horizontal[x2 - 1][y2].flipped ==
                       board.connections.horizontal[x2 - 1][y2].mixed &&
-                      board.cells[x2 - 1][y2].bit.lowerBit == 0);
+                      !board.cells[x2 - 1][y2].bit.lowerBit);
                   break;
               }
             }
             if (x2 < board.width - 1) {
               switch (board.cells[x2 + 1][y2].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
                       board.connections.horizontal[x2][y2].flipped !=
                       board.connections.horizontal[x2][y2].mixed &&
-                      board.cells[x2 + 1][y2].bit == 1) ||
+                      board.cells[x2 + 1][y2].bit) ||
                     (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
                       board.connections.horizontal[x2][y2].flipped !=
                       board.connections.horizontal[x2][y2].mixed &&
-                      board.cells[x2 + 1][y2].bit == 0);
+                      !board.cells[x2 + 1][y2].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
                       board.connections.horizontal[x2][y2].flipped !=
                       board.connections.horizontal[x2][y2].mixed &&
-                      board.cells[x2 + 1][y2].bit.lowerBit == 1) ||
+                      board.cells[x2 + 1][y2].bit.lowerBit) ||
                     (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
                       board.connections.horizontal[x2][y2].flipped !=
                       board.connections.horizontal[x2][y2].mixed &&
-                      board.cells[x2 + 1][y2].bit.lowerBit == 0);
+                      !board.cells[x2 + 1][y2].bit.lowerBit);
                   break;
               }
             }
             if (y2 > 0) {
               switch (board.cells[x2][y2 - 1].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2 - 1].type.lowerType ==
                       1 &&
                       board.connections.vertical[x2][y2 - 1].flipped ==
                       board.connections.vertical[x2][y2 - 1].mixed &&
-                      board.cells[x2][y2 - 1].bit == 1) ||
+                      board.cells[x2][y2 - 1].bit) ||
                     (board.connections.vertical[x2][y2 - 1].type.lowerType ==
                       2 &&
                       board.connections.vertical[x2][y2 - 1].flipped ==
                       board.connections.vertical[x2][y2 - 1].mixed &&
-                      board.cells[x2][y2 - 1].bit == 0);
+                      !board.cells[x2][y2 - 1].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2 - 1].type.lowerType ==
                       1 &&
                       board.connections.vertical[x2][y2 - 1].flipped ==
                       board.connections.vertical[x2][y2 - 1].mixed &&
-                      board.cells[x2][y2 - 1].bit.lowerBit == 1) ||
+                      board.cells[x2][y2 - 1].bit.lowerBit) ||
                     (board.connections.vertical[x2][y2 - 1].type.lowerType ==
                       2 &&
                       board.connections.vertical[x2][y2 - 1].flipped ==
                       board.connections.vertical[x2][y2 - 1].mixed &&
-                      board.cells[x2][y2 - 1].bit.lowerBit == 0);
+                      !board.cells[x2][y2 - 1].bit.lowerBit);
                   break;
               }
             }
             if (y2 < board.height - 1) {
               switch (board.cells[x2][y2 + 1].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2].type.lowerType == 1 &&
                       board.connections.vertical[x2][y2].flipped !=
                       board.connections.vertical[x2][y2].mixed &&
-                      board.cells[x2][y2 + 1].bit == 1) ||
+                      board.cells[x2][y2 + 1].bit) ||
                     (board.connections.vertical[x2][y2].type.lowerType == 2 &&
                       board.connections.vertical[x2][y2].flipped !=
                       board.connections.vertical[x2][y2].mixed &&
-                      board.cells[x2][y2 + 1].bit == 0);
+                      !board.cells[x2][y2 + 1].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2].type.lowerType == 1 &&
                       board.connections.vertical[x2][y2].flipped !=
                       board.connections.vertical[x2][y2].mixed &&
-                      board.cells[x2][y2 + 1].bit.lowerBit == 1) ||
+                      board.cells[x2][y2 + 1].bit.lowerBit) ||
                     (board.connections.vertical[x2][y2].type.lowerType == 2 &&
                       board.connections.vertical[x2][y2].flipped !=
                       board.connections.vertical[x2][y2].mixed &&
-                      board.cells[x2][y2 + 1].bit.lowerBit == 0);
+                      !board.cells[x2][y2 + 1].bit.lowerBit);
                   break;
               }
             }
-            bit |=
+            bit ||=
               (board.connections.applicital[x2][y2].type == 1 &&
                 !board.connections.applicital[x2][y2].flipped &&
-                board.cells[x2][y2].bit.upperBit == 1) ||
+                board.cells[x2][y2].bit.upperBit) ||
               (board.connections.applicital[x2][y2].type == 2 &&
                 !board.connections.applicital[x2][y2].flipped &&
-                board.cells[x2][y2].bit.upperBit == 0);
-            newGrid[x2][y2].bit.lowerBit = bit;
+                !board.cells[x2][y2].bit.upperBit);
+            tick.newGrid[x2][y2].bit.lowerBit = bit;
             break;
           case 1:
             if (x2 > 0) {
               switch (board.cells[x2 - 1][y2].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2 - 1][y2].type.upperType ==
                       1 &&
                       !board.connections.horizontal[x2 - 1][y2].flipped &&
-                      board.cells[x2 - 1][y2].bit == 1) ||
+                      board.cells[x2 - 1][y2].bit) ||
                     (board.connections.horizontal[x2 - 1][y2].type.upperType ==
                       2 &&
                       !board.connections.horizontal[x2 - 1][y2].flipped &&
-                      board.cells[x2 - 1][y2].bit == 0);
+                      !board.cells[x2 - 1][y2].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2 - 1][y2].type.upperType ==
                       1 &&
                       !board.connections.horizontal[x2 - 1][y2].flipped &&
-                      board.cells[x2 - 1][y2].bit.upperBit == 1) ||
+                      board.cells[x2 - 1][y2].bit.upperBit) ||
                     (board.connections.horizontal[x2 - 1][y2].type.upperType ==
                       2 &&
                       !board.connections.horizontal[x2 - 1][y2].flipped &&
-                      board.cells[x2 - 1][y2].bit.upperBit == 0);
+                      !board.cells[x2 - 1][y2].bit.upperBit);
                   break;
               }
             }
             if (x2 < board.width - 1) {
               switch (board.cells[x2 + 1][y2].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2][y2].type.upperType == 1 &&
                       board.connections.horizontal[x2][y2].flipped &&
-                      board.cells[x2 + 1][y2].bit == 1) ||
+                      board.cells[x2 + 1][y2].bit) ||
                     (board.connections.horizontal[x2][y2].type.upperType == 2 &&
                       board.connections.horizontal[x2][y2].flipped &&
-                      board.cells[x2 + 1][y2].bit == 0);
+                      !board.cells[x2 + 1][y2].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.horizontal[x2][y2].type.upperType == 1 &&
                       board.connections.horizontal[x2][y2].flipped &&
-                      board.cells[x2 + 1][y2].bit.upperBit == 1) ||
+                      board.cells[x2 + 1][y2].bit.upperBit) ||
                     (board.connections.horizontal[x2][y2].type.upperType == 2 &&
                       board.connections.horizontal[x2][y2].flipped &&
-                      board.cells[x2 + 1][y2].bit.upperBit == 0);
+                      !board.cells[x2 + 1][y2].bit.upperBit);
                   break;
               }
             }
             if (y2 > 0) {
               switch (board.cells[x2][y2 - 1].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2 - 1].type.upperType ==
                       1 &&
                       !board.connections.vertical[x2][y2 - 1].flipped &&
-                      board.cells[x2][y2 - 1].bit == 1) ||
+                      board.cells[x2][y2 - 1].bit) ||
                     (board.connections.vertical[x2][y2 - 1].type.upperType ==
                       2 &&
                       !board.connections.vertical[x2][y2 - 1].flipped &&
-                      board.cells[x2][y2 - 1].bit == 0);
+                      !board.cells[x2][y2 - 1].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2 - 1].type.upperType ==
                       1 &&
                       !board.connections.vertical[x2][y2 - 1].flipped &&
-                      board.cells[x2][y2 - 1].bit.upperBit == 1) ||
+                      board.cells[x2][y2 - 1].bit.upperBit) ||
                     (board.connections.vertical[x2][y2 - 1].type.upperType ==
                       2 &&
                       !board.connections.vertical[x2][y2 - 1].flipped &&
-                      board.cells[x2][y2 - 1].bit.upperBit == 0);
+                      !board.cells[x2][y2 - 1].bit.upperBit);
                   break;
               }
             }
             if (y2 < board.height - 1) {
               switch (board.cells[x2][y2 + 1].type) {
                 case 1:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2].type.upperType == 1 &&
                       board.connections.vertical[x2][y2].flipped &&
-                      board.cells[x2][y2 + 1].bit == 1) ||
+                      board.cells[x2][y2 + 1].bit) ||
                     (board.connections.vertical[x2][y2].type.upperType == 2 &&
                       board.connections.vertical[x2][y2].flipped &&
-                      board.cells[x2][y2 + 1].bit == 0);
+                      !board.cells[x2][y2 + 1].bit);
                   break;
                 case 2:
-                  bit |=
+                  bit ||=
                     (board.connections.vertical[x2][y2].type.upperType == 1 &&
                       board.connections.vertical[x2][y2].flipped &&
-                      board.cells[x2][y2 + 1].bit.upperBit == 1) ||
+                      board.cells[x2][y2 + 1].bit.upperBit) ||
                     (board.connections.vertical[x2][y2].type.upperType == 2 &&
                       board.connections.vertical[x2][y2].flipped &&
-                      board.cells[x2][y2 + 1].bit.upperBit == 0);
+                      !board.cells[x2][y2 + 1].bit.upperBit);
                   break;
               }
             }
-            bit |=
+            bit ||=
               (board.connections.applicital[x2][y2].type == 1 &&
                 board.connections.applicital[x2][y2].flipped &&
-                board.cells[x2][y2].bit.lowerBit == 1) ||
+                board.cells[x2][y2].bit.lowerBit) ||
               (board.connections.applicital[x2][y2].type == 2 &&
                 board.connections.applicital[x2][y2].flipped &&
-                board.cells[x2][y2].bit.lowerBit == 0);
-            newGrid[x2][y2].bit.upperBit = bit;
+                !board.cells[x2][y2].bit.lowerBit);
+            tick.newGrid[x2][y2].bit.upperBit = bit;
             break;
         }
-        render.setCell([x2, y2], render.getColour(newGrid[x2][y2].bit, 2))
+        render.setCell([x2, y2], render.getColour(tick.newGrid[x2][y2].bit, 2))
       }
     });
     if (!auto || !tick.paused) {
-      board.cells = newGrid;
+      board.cells = tick.newGrid;
       tick.frames++
     }
     //<timing>
     if (!tick.realtime && !tick.paused && auto) {
       let epoch = new Date().getTime();
-      if (!start) {
-        nextAt = start = epoch;
+      if (!tick.start) {
+        tick.nextAt = tick.start = epoch;
       }
-      tick.drift = epoch - start - ticks * tick.rate;
-      nextAt = start + tick.rate * (ticks + 1);
+      tick.drift = epoch - tick.start - tick.ticks * tick.rate;
+      tick.nextAt = tick.start + tick.rate * (tick.ticks + 1);
       if (tick.drift > tick.rate) {
         let ticksBehind = Math.floor(tick.drift / tick.rate);
-        document.getElementById("behindDiv").style.visibility = "visible";
-        if (!helpMenu) {
+        document.getElementById("behindDiv").style.visibility = "inherit";
+        if (!ui.helpMenu) {
           document.getElementById("behindSkip").style.pointerEvents = "all";
         }
         document.getElementById("behind").textContent =
@@ -1086,10 +977,9 @@ tick.tick = ((auto = true) => {
         document.getElementById("behindSkip").style.pointerEvents = "none";
       }
       if (tick.drift < -tick.rate) {
-        console.log(tick.drift);
         let ticksAhead = Math.floor(tick.drift / tick.rate) * -1;
-        document.getElementById("aheadDiv").style.visibility = "visible";
-        if (!helpMenu) {
+        document.getElementById("aheadDiv").style.visibility = "inherit";
+        if (!ui.helpMenu) {
           document.getElementById("aheadSkip").style.pointerEvents = "all";
         }
         document.getElementById("ahead").textContent =
@@ -1101,24 +991,24 @@ tick.tick = ((auto = true) => {
         document.getElementById("aheadDiv").style.visibility = "hidden";
         document.getElementById("aheadSkip").style.pointerEvents = "none";
       }
-      ticks++;
+      tick.ticks++;
       if (tick.recovery) {
         let count = tick.driftAscention.filter((value) => value === true).length;
         console.log("count: " + count, "render.drift: " + tick.drift);
         if (count >= 8 && tick.drift > 10 * tick.rate) {
-          document.getElementById("unstable").style.visibility = "visible";
+          document.getElementById("unstable").style.visibility = "inherit";
           console.warn("unstable, rasing tickrate to: " + tick.rate);
           tick.set(false, tick.rate * 2);
         } else {
           document.getElementById("unstable").style.visibility = "hidden";
         }
         tick.driftAscention.unshift(
-          Math.floor(tick.drift / tick.rate) > Math.floor(lastDrift / tick.rate)
+          Math.floor(tick.drift / tick.rate) > Math.floor(tick.lastDrift / tick.rate)
         );
         tick.driftAscention.pop();
-        lastDrift = tick.drift;
+        tick.lastDrift = tick.drift;
       }
-      setTimeout(tick.tick, nextAt - epoch);
+      setTimeout(tick.tick, tick.nextAt - epoch);
       //</timing>
     }
     if (tick.realtime && !tick.paused && !tick.sync && auto) {
@@ -1126,125 +1016,184 @@ tick.tick = ((auto = true) => {
     }
   }
 })
+tick.innerTick1Old = ((item) => { //Old type 1 tick
+  let x2 = item[0];
+  let y2 = item[1];
+  let bit = false;
+  //From Left
+  if (x2 > 0) {
+    switch (board.cells[x2 - 1][y2].type) {
+      case 1:
+        bit ||=
+          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
+            !board.connections.horizontal[x2 - 1][y2].flipped &&
+            board.cells[x2 - 1][y2].bit) ||
+          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
+            !board.connections.horizontal[x2 - 1][y2].flipped &&
+            !board.cells[x2 - 1][y2].bit);
+        bit ||=
+          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
+            board.connections.horizontal[x2 - 1][y2].flipped ==
+            board.connections.horizontal[x2 - 1][y2].mixed &&
+            board.cells[x2 - 1][y2].bit) ||
+          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
+            board.connections.horizontal[x2 - 1][y2].flipped ==
+            board.connections.horizontal[x2 - 1][y2].mixed &&
+            !board.cells[x2 - 1][y2].bit);
+        break;
+      case 2:
+        bit ||=
+          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
+            !board.connections.horizontal[x2 - 1][y2].flipped &&
+            board.cells[x2 - 1][y2].bit.upperBit) ||
+          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
+            !board.connections.horizontal[x2 - 1][y2].flipped &&
+            !board.cells[x2 - 1][y2].bit.upperBit);
+        bit ||=
+          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
+            board.connections.horizontal[x2 - 1][y2].flipped ==
+            board.connections.horizontal[x2 - 1][y2].mixed &&
+            board.cells[x2 - 1][y2].bit.lowerBit) ||
+          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
+            board.connections.horizontal[x2 - 1][y2].flipped ==
+            board.connections.horizontal[x2 - 1][y2].mixed &&
+            !board.cells[x2 - 1][y2].bit.lowerBit);
+        break;
+    }
+  }
+  //From Right
+  if (x2 < board.width - 1) {
+    switch (board.cells[x2 + 1][y2].type) {
+      case 1:
+        bit ||=
+          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
+            board.connections.horizontal[x2][y2].flipped &&
+            board.cells[x2 + 1][y2].bit) ||
+          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
+            board.connections.horizontal[x2][y2].flipped &&
+            !board.cells[x2 + 1][y2].bit);
+        bit ||=
+          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
+            board.connections.horizontal[x2][y2].flipped !=
+            board.connections.horizontal[x2][y2].mixed &&
+            board.cells[x2 + 1][y2].bit) ||
+          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
+            board.connections.horizontal[x2][y2].flipped !=
+            board.connections.horizontal[x2][y2].mixed &&
+            !board.cells[x2 + 1][y2].bit);
+        break;
+      case 2:
+        bit ||=
+          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
+            board.connections.horizontal[x2][y2].flipped &&
+            board.cells[x2 + 1][y2].bit.upperBit) ||
+          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
+            board.connections.horizontal[x2][y2].flipped &&
+            !board.cells[x2 + 1][y2].bit.upperBit);
+        bit ||=
+          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
+            board.connections.horizontal[x2][y2].flipped !=
+            board.connections.horizontal[x2][y2].mixed &&
+            board.cells[x2 + 1][y2].bit.lowerBit) ||
+          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
+            board.connections.horizontal[x2][y2].flipped !=
+            board.connections.horizontal[x2][y2].mixed &&
+            !board.cells[x2 + 1][y2].bit.lowerBit);
+        break;
+    }
+  }
+  //From Up
+  if (y2 > 0) {
+    switch (board.cells[x2][y2 - 1].type) {
+      case 1:
+        bit ||=
+          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
+            !board.connections.vertical[x2][y2 - 1].flipped &&
+            board.cells[x2][y2 - 1].bit) ||
+          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
+            !board.connections.vertical[x2][y2 - 1].flipped &&
+            !board.cells[x2][y2 - 1].bit);
+        bit ||=
+          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
+            board.connections.vertical[x2][y2 - 1].flipped ==
+            board.connections.vertical[x2][y2 - 1].mixed &&
+            board.cells[x2][y2 - 1].bit) ||
+          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
+            board.connections.vertical[x2][y2 - 1].flipped ==
+            board.connections.vertical[x2][y2 - 1].mixed &&
+            !board.cells[x2][y2 - 1].bit);
+        break;
+      case 2:
+        bit ||=
+          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
+            !board.connections.vertical[x2][y2 - 1].flipped &&
+            board.cells[x2][y2 - 1].bit.upperBit) ||
+          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
+            !board.connections.vertical[x2][y2 - 1].flipped &&
+            !board.cells[x2][y2 - 1].bit.upperBit);
+        bit ||=
+          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
+            board.connections.vertical[x2][y2 - 1].flipped ==
+            board.connections.vertical[x2][y2 - 1].mixed &&
+            board.cells[x2][y2 - 1].bit.lowerBit) ||
+          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
+            board.connections.vertical[x2][y2 - 1].flipped ==
+            board.connections.vertical[x2][y2 - 1].mixed &&
+            !board.cells[x2][y2 - 1].bit.lowerBit);
+        break;
+    }
+  }
+  //From Down
+  if (y2 < board.height - 1) {
+    switch (board.cells[x2][y2 + 1].type) {
+      case 1:
+        bit ||=
+          (board.connections.vertical[x2][y2].type.upperType == 1 &&
+            board.connections.vertical[x2][y2].flipped &&
+            board.cells[x2][y2 + 1].bit) ||
+          (board.connections.vertical[x2][y2].type.upperType == 2 &&
+            board.connections.vertical[x2][y2].flipped &&
+            !board.cells[x2][y2 + 1].bit);
+        bit ||=
+          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
+            board.connections.vertical[x2][y2].flipped !=
+            board.connections.vertical[x2][y2].mixed &&
+            board.cells[x2][y2 + 1].bit) ||
+          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
+            board.connections.vertical[x2][y2].flipped !=
+            board.connections.vertical[x2][y2].mixed &&
+            !board.cells[x2][y2 + 1].bit);
+        break;
+      case 2:
+        bit ||=
+          (board.connections.vertical[x2][y2].type.upperType == 1 &&
+            board.connections.vertical[x2][y2].flipped &&
+            board.cells[x2][y2 + 1].bit.upperBit) ||
+          (board.connections.vertical[x2][y2].type.upperType == 2 &&
+            board.connections.vertical[x2][y2].flipped &&
+            !board.cells[x2][y2 + 1].bit.upperBit);
+        bit ||=
+          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
+            board.connections.vertical[x2][y2].flipped !=
+            board.connections.vertical[x2][y2].mixed &&
+            board.cells[x2][y2 + 1].bit.lowerBit) ||
+          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
+            board.connections.vertical[x2][y2].flipped !=
+            board.connections.vertical[x2][y2].mixed &&
+            !board.cells[x2][y2 + 1].bit.lowerBit);
+        break;
+    }
+  }
+  tick.newGrid[x2][y2].bit = bit;
+  render.setCell([x2, y2], render.getColour(bit, 1))
+})
+tick.innerTick1New = ((item) => { //New Type 1 tick
+
+})
 if (!tick.realtime) {
   tick.tick();
 }
-//file
-var file = {
-  download: ((filename) => {
-    var element = document.createElement("a");
-    element.setAttribute(
-      "href",
-      "data:text/plain;charset=utf-8," +
-      encodeURIComponent(
-        JSON.stringify({ cells: board.cells, connections: board.connections })
-      )
-    );
-    element.setAttribute("download", filename);
-    element.style.display = "none";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  }),
-  upload: (_ => {
-    var input = document.createElement("input");
-    input.type = "file";
-    input.onchange = (e) => {
-      var uploadedFileData = e.target.files[0];
-      uploadedFileData.text().then((f) => {
-        file.loadData(f);
-      });
-    };
-
-    input.click();
-  }),
-  loadData: ((content) => {
-    board.cells = JSON.parse(content).cells;
-    board.connections = JSON.parse(content).connections;
-    board.width = board.cells.length;
-    board.height = board.cells[0].length;
-    culling.map();
-    render.generateData()
-  }),
-  setWrapperVisibility: ((state) => {
-    document.querySelector(".wrapper").style.visibility = state ? "visible" : "hidden";
-    document.querySelector(".wrapper").style.opacity = state * 0.5;
-  })
-}
-//ui
-ui = {
-  help: (_ => {
-    if (helpMenu) {
-      helpMenu = false;
-      document.getElementById("gameDiv").style.filter = "blur(0px)";
-      document.getElementById("gameDiv").style.pointerEvents = "all";
-      document.getElementById("help").style.visibility = "hidden";
-    } else {
-      helpMenu = true;
-      document.getElementById("gameDiv").style.filter = "blur(8px)";
-      document.getElementById("gameDiv").style.pointerEvents = "none";
-      document.getElementById("help").style.visibility = "visible";
-    }
-  }),
-  flyIn: (_ => {
-    let right = Number(quantities.style.right.split("px")[0]);
-    if (right < 72) {
-      if (!document.getElementById("realtimeCheckBox").checked) {
-        quantities.style.visibility = "visible";
-        quantities.style.right =
-          right + ((1 - (right + 180) / 252) * 25 + 2) + "px";
-        setTimeout(ui.flyIn, 10);
-      } else {
-        ui.flyOut();
-      }
-    } else {
-      if (!document.getElementById("realtimeCheckBox").checked) {
-        quantities.style.right = "72px";
-      } else {
-        ui.flyOut();
-      }
-    }
-  }),
-  flyOut: (_ => {
-    let right = Number(quantities.style.right.split("px")[0]);
-    if (right > -180) {
-      if (document.getElementById("realtimeCheckBox").checked) {
-        quantities.style.right =
-          right - ((1 - (right + 180) / 252) * 25 + 2) + "px";
-        setTimeout(ui.flyOut, 10);
-      } else {
-        ui.flyIn();
-      }
-    } else {
-      if (document.getElementById("realtimeCheckBox").checked) {
-        quantities.style.visibility = "hidden";
-      } else {
-        ui.flyIn();
-      }
-    }
-  }),
-  change_quantity: ((change) => {
-    if (!tick.realtime) {
-      // Get current value
-      let quantity = Number(quantities.children[2].value);
-
-      // Ensure quantity is a valid number
-      if (isNaN(quantity)) quantity = 1;
-
-      // Change quantity
-      quantity += change;
-
-      // Ensure quantity is always a number
-      quantity = Math.max(quantity, 1);
-
-      // Output number
-      quantities.children[2].value = quantity;
-
-      tick.realtimeCheck();
-    }
-  })
-}
-//record
+//Record Object Initialization
 if (record.enabled) {
   record.stream = render.canvases.render.captureStream(0);
   record.recorder = new MediaRecorder(record.stream);
@@ -1253,60 +1202,84 @@ if (record.enabled) {
     record.chunks.push(e.data);
   })
   record.recorder.onstop = ((e) => {
-    var blob = new Blob(record.chunks, { type: "video/mp4" });
+    let blob = new Blob(record.chunks, { type: "video/mp4" });
     record.chunks = [];
-    var videoURL = URL.createObjectURL(blob);
+    let videoURL = URL.createObjectURL(blob);
     window.open(videoURL);
   })
   record.recorder.ondataavailable = ((e) => {
     record.chunks.push(e.data);
   })
 }
-//tickrate control
-quantities.children[2].value = 10;
-quantities.children[2].onchange = _ => tick.realtimeCheck();
-quantities.children[1].addEventListener("click", _ => ui.change_quantity(-1));
-quantities.children[3].addEventListener("click", _ => ui.change_quantity(1));
-//music
-let localMute = localStorage.getItem("mute") === "true";
-let localTrack = localStorage.getItem("track");
-let localCurrentTime = localStorage.getItem("currentTime");
-music.mute = ((setMute = null) => {
+//Music Object Initialization
+// music.soundtracks = [
+//   "https://drive.google.com/uc?export=download&id=1SEhtmPk-VuIYk9EzTfnretk62DzIWK3k",
+//   "https://drive.google.com/uc?export=download&id=1In6dTH9f4jT5QjMzqmMreAm5oZ6pLdbf",
+//   "https://drive.google.com/uc?export=download&id=1_UASirXo1GB1BUV24Jk4MYz71fQW0kXQ",
+//   "https://drive.google.com/uc?export=download&id=1UGV2Mvj0816ss_qOy495CTnIhOIoNl8-",
+//   "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
+//   "https://drive.google.com/uc?export=download&id=1_lrAyHc9RkPCoZ03rPdLpX8PLJTMdf1c",
+//   "https://drive.google.com/uc?export=download&id=1cq0KR7B_3Dbku3668iSCtE5Q-Fbdnsmd",
+//   "https://drive.google.com/uc?export=download&id=1NACj9P4KPASmT9mDBvuuJ4UcnH7IYizr",
+//   "https://drive.google.com/uc?export=download&id=1FIWCweWhOkJgBjq8xhbs9RERo9fby_YK",
+//   "https://drive.google.com/uc?export=download&id=1n3AwpuPk72-bxCENutLuGhjc5tyg2ukF",
+//   "https://drive.google.com/uc?export=download&id=16zToeg8eqVK9nciCMdR0rzDzX5pP6hEw",
+// ]
+//<switch soundtracks>
+music.soundtracks = [
+ "https://t4.bcbits.com/stream/f4118aa1b5e5371868608f71bce5b6c0/mp3-128/2605058970?p=0&ts=1671163356&t=d2ed9e329f94945bd07f42c5152f993f0147979b&token=1671163356_a2feef5350d9e88f3c5972e267bdd84f4302b2f1",
+ "https://t4.bcbits.com/stream/5a2576ffd1f675f5f88c1b7fa190f847/mp3-128/452949034?p=0&ts=1671163453&t=2b3b4164e8fd60b7f8ba23f700aee051e864e9d4&token=1671163453_6677c500e5e0fa86a210db2284189540080f9157",
+ "https://t4.bcbits.com/stream/b80811fe5797db953cde4233dcd94b0d/mp3-128/2660315560?p=0&ts=1671163574&t=5e0b4ab3ba7e44f366935d9b0a2dc4f4754c0dfb&token=1671163574_d300fa7ba016b2fdc092611b4444ddfe47bfc7fa",
+ "https://t4.bcbits.com/stream/caeacba77ad233bb664325c79a984d62/mp3-128/1377240193?p=0&ts=1671163705&t=68ef023d3c5d2aa0764db7885cd9e0731415bfdd&token=1671163705_a29719d308d57fb5c2b760d70936c1c2ea777ca6",
+ "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
+ "https://t4.bcbits.com/stream/51a970d315f75bbe9d7da166dc9b5a98/mp3-128/3708318485?p=0&ts=1671163859&t=4e3f373f10297ff18cb4172a4de6eae106738be0&token=1671163859_2a5cc14c272a3df2c8b4865ff76171b8bc54d20d",
+ "https://t4.bcbits.com/stream/48646c2d9359292de7a6bca3aafcb5bc/mp3-128/2703815867?p=0&ts=1671163886&t=e64c473b6e862aace36c9556b1cee77ba5da48dc&token=1671163886_1fba40ccb61fc650003d699190c41e11b9713c56",
+ "https://t4.bcbits.com/stream/b436945049b78ad00407a7b9d1a9ea0a/mp3-128/1492957428?p=0&ts=1671164536&t=0a127825dc4f292673e2a475f6f77781ea6a2b74&token=1671164536_b5ed0f89930628ed1bf3bf1ee3f55adf719c607d",
+ "https://t4.bcbits.com/stream/5ada1f8db1b0975e20c6f102410199cf/mp3-128/1536389329?p=0&ts=1671166476&t=5626fcc141229fe7f8573bc1b3a66ead10099e4f&token=1671166476_060c894cc2641e708d12ef079efc3fa34f363619",
+ "https://t4.bcbits.com/stream/3cfc091e838ffcebd4e9bb6df61a22b2/mp3-128/3365989152?p=0&ts=1671166659&t=4049b917d76ebe6ad80dcf71bd1814fc893eedc0&token=1671166659_c14cc389ebd5d435961c77a5db7187b0c29370ea",
+ "https://t4.bcbits.com/stream/0d742e1249de2336944d12431f94e042/mp3-128/3442035689?p=0&ts=1671166705&t=24244dc91fd47411c73fd97455fa09c2fcb27a44&token=1671166705_6a3f618cd8b166ab691fd96bc23630417c2b5e14"
+]
+//</switch>
+music.soundtrackMeta = [
+  { title: "Labyrinth Of Mirrors", author: "Substan", album: "Labyrinth Of Mirrors (24bit)" },
+  { title: "Wide Plain", author: "Substan", album: "Digitales IV" },
+  { title: "Paper Pete", author: "Lifeformed", album: "Immerse" },
+  { title: "Goodbye Snake", author: "Kettel", album: "Nerves Of Time Vol. 4" },
+  { title: "Select", author: "Unknown", album: "Unkown" },
+  { title: "The Tide Is Rising", author: "Neurotech", album: "Evasive" },
+  { title: "Compass", author: "Neurotech", album: "Evasive" },
+  { title: "Hydra", author: "Neuroaxis", album: "The Change Of Constant" },
+  { title: "The Reversal", author: "Neuroaxis", album: "The Change Of Constant" },
+  { title: "Genome", author: "Neuroaxis", album: "The Lockdown Sessions" },
+  { title: "Corporate Japan", author: "Biocratic", album: "Beets 4" }
+]
+music.mute = ((setMute = null) => { //Mute the music
   if (typeof setMute == "object" && setMute != null) {
     setMute = setMute.action == "pause"
   }
-  if (!lastCell) {
-    lastCell = []
+  if (!music.muted && music.audio.paused) {
+    console.log("start music")
     music.audio.play();
-    music.muted = false;
-    document.getElementById("muteCross").style.visibility = "hidden";
-    localStorage.setItem("mute", false);
   } else if ((!music.muted && setMute == null) || (setMute == true && setMute != null)) {
     music.audio.pause();
-    music.muted = true;
-    document.getElementById("muteCross").style.visibility = "visible";
-    localStorage.setItem("mute", true);
   }
   else if ((music.muted && setMute == null) || (setMute == false && setMute != null)) {
     music.audio.play();
-    music.muted = false;
-    document.getElementById("muteCross").style.visibility = "hidden";
-    localStorage.setItem("mute", false);
   }
   if ('mediaSession' in navigator) {
     music.updateMeta();
-    navigator.mediaSession.playbackState = music.muted ? "tick.paused" : "playing"
+    navigator.mediaSession.playbackState = music.muted ? "paused" : "playing"
   }
 })
-music.next = (_ => {
+music.next = (_ => { //Play the next song
   music.audio.pause();
-  music.audio.onended(1)
+  music.audio.onended()
 })
-music.prev = (_ => {
+music.prev = (_ => { //Play the previous song
   music.audio.pause();
   music.audio.onended(-1)
 })
-music.updateMeta = (_ => {
+music.updateMeta = (_ => { //Update the music meta data
   if ('mediaSession' in navigator) {
 
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -1322,34 +1295,345 @@ music.updateMeta = (_ => {
     navigator.mediaSession.setActionHandler('pause', music.mute);
     navigator.mediaSession.setActionHandler('previoustrack', music.prev);
     navigator.mediaSession.setActionHandler('nexttrack', music.next);
-    navigator.mediaSession.playbackState = music.muted ? "tick.paused" : "playing"
+    navigator.mediaSession.playbackState = music.muted ? "paused" : "playing"
   }
 })
-if (localMute === null) {
-  localStorage.setItem("mute", true);
-} else {
-  music.muted = localMute;
-  document.getElementById("muteCross").style.visibility = localMute
-    ? "visible"
-    : "hidden";
-}
-if (localTrack === null || localTrack == "NaN") {
-  music.index = Math.floor(Math.random() * music.soundtracks.length)
-  localStorage.setItem("track", music.index);
-} else {
-  music.index = Number(localTrack)
-}
 music.audio = new Audio(music.soundtracks[music.index])
 music.audio.volume = 0.5;
-if (localCurrentTime === null) {
-  localStorage.setItem("currentTime", 0);
-} else {
-  music.audio.currentTime = Number(localCurrentTime);
-}
-window.onunload = _ => {
+music.muted = (String(localStorage.getItem("mute") ?? true) === "true"); //Get the mute state from local storage
+music.index = Number(localStorage.getItem("track")) ?? Math.floor(Math.random() * music.soundtracks.length) //Get the track number from local storage
+music.audio.currentTime = Number(localStorage.getItem("currentTime")) ?? 0 //Get the current time in that track from local storage
+music.audio.src = music.soundtracks[music.index];
+localStorage.setItem("mute", music.muted);
+localStorage.setItem("track", music.index);
+localStorage.setItem("currentTime", music.audio.currentTime);
+document.getElementById("muteCross").style.visibility = music.muted
+  ? "inherit"
+  : "hidden);";
+window.onpagehide = _ => {
   localStorage.setItem("currentTime", music.audio.currentTime);
 };
-//utility
+music.audio.onended = ((direction = 1) => { //When one track ends, start playing the next one
+  if (typeof direction != "number") {
+    direction = 1
+  }
+  music.audio.src = "";
+  music.index += direction;
+  music.index %= music.soundtracks.length;
+  music.audio.src = music.soundtracks[music.index];
+  localStorage.setItem("track", music.index);
+  music.audio.load();
+  music.audio.play();
+  music.updateMeta();
+});
+music.audio.onpause = (() => { //Add the cross on the sound icon when the song is muted
+  music.muted = true;
+  document.getElementById("muteCross").style.visibility = "inherit";
+  localStorage.setItem("mute", true);
+})
+music.audio.onplay = (() => { //Remove the cross on the sound icon when the song is unmuted
+  music.muted = false;
+  document.getElementById("muteCross").style.visibility = "hidden";
+  localStorage.setItem("mute", false);
+})
+//Debug Object Initialization
+debug.interval = -1
+debug.setEnabled = ((state) => { //Enable or disable debug mode
+  debug.enabled = state
+  if (state) {
+    debug.interval = setInterval((_ => { //If enabling, set the framerate log interval
+      console.log("FPS: " + render.frames, " TPS: " + tick.frames)
+      render.frames = 0;
+      tick.frames = 0;
+    }), 1000)
+  }
+  else {
+    clearInterval(debug.interval) //If disabling, clear the interval
+  }
+})
+debug.setEnabled(debug.enabled)
+//File Object Initialization
+file = {
+  saved: true,
+  upload: (_ => { //Open the file selector for uploading a board file
+    let input = document.createElement("input");
+    input.type = "file";
+    input.onchange = (e) => {
+      let uploadedFileData = e.target.files[0];
+      if (e.target.files[0].name.split(".").at(-1) == "oc") {
+        uploadedFileData.arrayBuffer().then((f) => { file.loadDataBinary(new Uint8Array(f)) })
+      }
+      else if (e.target.files[0].name.split(".").at(-1) == "joc") {
+        uploadedFileData.text().then((f) => {
+          file.loadDataJSON(f);
+        });
+      }
+      else if (e.target.files[0].name.split(".").at(-1) == "boc") {
+        uploadedFileData.text().then((f) => {
+          file.fromBOC(f)
+        });
+      }
+    };
+
+    input.click();
+  }),
+  loadDataJSON: ((content) => { //Load data from a board file in JSON format
+    let data = JSON.parse(content)
+    board.cells = data.cells;
+    board.connections = data.connections;
+    board.width = board.cells.length;
+    board.height = board.cells[0].length;
+    culling.map();
+  }),
+  setWrapperVisibility: ((state) => { //Show or hide the "DROP HERE+" text
+    document.querySelector(".wrapper").style.visibility = state ? "inherit" : "hidden";
+    document.querySelector(".wrapper").style.opacity = state * 0.5;
+  }),
+  toBOC: (() => { //Convert the board to a Base64 encoded string
+    console.log(utility.byteArrayToBase64(file.boardToBinary()))
+  }),
+  fromBOC: ((code) => { //Convert a Base64 encoded string to a board and load it
+    file.loadDataBinary(utility.base64ToByteArray(code))
+  }),
+  downloadJSON: ((filename) => { //Download the board to a file in JSON format (will be premium only)
+    file.saved = true;
+    let element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," +
+      encodeURIComponent(
+        JSON.stringify({ cells: board.cells, connections: board.connections })
+      )
+    );
+    element.setAttribute("download", filename + ".joc");
+    element.style.display = "none";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }),
+  boardToBinary: (() => { //Convert the board to a binary file
+    array = new Uint8Array()
+    let width = board.width.toString(2)
+    let height = board.height.toString(2)
+    width = "0".repeat(20).substr(width.length) + width
+    height = "0".repeat(20).substr(height.length) + height
+    binary = width + height
+    for (let y2 = 0; y2 < board.height; y2++) { //Loop over every cell
+      for (let x2 = 0; x2 < board.width; x2++) {
+        switch (board.cells[x2][y2].type) { //Check the cell type
+          case 0: //Type 0
+            binary += "00" //Add the prefix "00" to the start 
+            break;
+          case 1: //Type 1
+            binary += "01" + (+board.cells[x2][y2].bit) //Add the prefix "01" to the start and then add the cell's bit
+            break;
+          case 2: //Type 2
+            binary += "10" + (+board.cells[x2][y2].bit.upperBit) + (+board.cells[x2][y2].bit.lowerBit) //Add the prefix "10" to the start and then add the cell's bits
+            break;
+        }
+        if (binary.length >= 8) {//If the length of the binary string is more than 8 characters
+          newArray = new Uint8Array([parseInt(binary.substring(0, 8), 2)]); //Convert the binary to decimal and append it to the array
+          binary = binary.substring(8)
+          var mergedArray = new Uint8Array(array.length + newArray.length);
+          mergedArray.set(array);
+          mergedArray.set(newArray, array.length);
+          array = mergedArray
+        }
+      }
+    }
+    newArray = new Uint8Array([parseInt(binary.substring(0, 8) + "0".repeat(8).substr(binary.length), 2)]);
+    var mergedArray = new Uint8Array(array.length + newArray.length);
+    mergedArray.set(array);
+    mergedArray.set(newArray, array.length);
+    return mergedArray
+  }),
+  downloadBase64: ((filename) => { //Download the board as a file in Base64 format
+    file.saved = true;
+    let data = file.boardToBinary()
+    let element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," +
+      encodeURIComponent(
+        utility.byteArrayToBase64(data)
+      )
+    );
+    element.setAttribute("download", filename + ".boc");
+    element.style.display = "none";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }),
+  downloadBinary: ((filename) => { //Download the board as a file in binary format
+    file.saved = true;
+    let data = file.boardToBinary()
+    var downloadBlob, downloadURL;
+    var blob, url;
+    blob = new Blob([data], {
+      type: "application/octet-stream"
+    });
+    url = window.URL.createObjectURL(blob);
+    var a;
+    a = document.createElement('a');
+    a.href = url;
+    a.download = filename + ".oc";
+    document.body.appendChild(a);
+    a.style = 'display: none';
+    a.click();
+    a.remove();
+  }),
+  loadDataBinary: ((binary) => { //Load the board from a binary file
+    console.log(binary)
+    let cells = []
+    let chunk = ""
+    let mode = 0
+    let type = 0
+    let section = 0
+    let x2 = 0, y2 = 0
+    let width, height
+    let pushCell = ((item) => {
+      if (y2 == height) {
+        return 1
+      }
+      if (y2 == 0) {
+        if (x2 == width) {
+          y2 = 1
+          x2 = 1
+          cells[0].push(item)
+        }
+        else {
+          cells.push([item])
+          x2++
+        }
+      }
+      else {
+        if (x2 == width) {
+          y2++
+          if (y2 == height) {
+            return 1
+          }
+          x2 = 1
+          cells[0].push(item)
+        }
+        else {
+          cells[x2].push(item)
+          x2++
+        }
+      }
+      return 0
+    })
+    for (let i = 0; i < binary.length; i++) {
+      byte = binary[i].toString(2)
+      byte = "0".repeat(8).substr(byte.length) + byte
+      for (let j = 0; j < 8; j++) {
+        chunk += byte[j]
+        if (chunk.length == 20 && section == 0) {
+          if (mode == 0) {
+            width = parseInt(chunk, 2)
+            mode++
+          }
+          else {
+            height = parseInt(chunk, 2)
+            mode = 0
+            section++
+          }
+          chunk = ""
+        }
+        if (chunk.length == 2 && mode == 0 && section == 1) {
+          type = parseInt(chunk, 2);
+          chunk = ""
+          mode++
+          if (type == 0) {
+            pushCell({ type: 0 })
+            mode = 0
+          }
+        }
+        if (mode == 1 && type == 1 && chunk.length == 1 && section == 1) {
+          pushCell({ type: 1, bit: !!(+chunk) })
+          mode = 0
+          chunk = ""
+        }
+        if (mode == 1 && type == 2 && chunk.length == 2 && section == 1) {
+          pushCell({ type: 2, bit: { upperBit: !!(+chunk[0]), lowerBit: !!(+chunk[1]) } })
+          mode = 0
+          chunk = ""
+        }
+      }
+    }
+    board.resize(width, height)
+    board.cells = cells
+    culling.map()
+  })
+}
+window.addEventListener("dragenter", ((e) => {
+  file.setWrapperVisibility(true);
+  core.lastTarget = e.target;
+}))
+window.addEventListener("dragleave", ((e) => {
+  if (e.target === core.lastTarget || e.target === document) {
+    file.setWrapperVisibility(false);
+  }
+}))
+window.addEventListener("dragover", ((e) => {
+  e.preventDefault();
+}))
+window.ondrop = ((e) => { //When a file/text is dropped
+  e.preventDefault();
+  file.setWrapperVisibility(false);
+  let dropText = e.dataTransfer.getData("text");
+  if (dropText == "") {
+    let reader = new FileReader();
+    if (e.dataTransfer.files[0].name.split(".").at(-1) == "oc") { //If in binary format, load in binary format
+      reader.readAsArrayBuffer(e.dataTransfer.files[0]);
+
+      reader.onload = (readerEvent) => {
+        file.loadDataBinary(new Uint8Array(readerEvent.target.result));
+      };
+    }
+    else if (e.dataTransfer.files[0].name.split(".").at(-1) == "joc") { //If in JSON format, load in JSON format
+      reader.readAsText(e.dataTransfer.files[0], "UTF-8");
+
+      reader.onload = (readerEvent) => {
+        file.loadDataJSON(readerEvent.target.result);
+      };
+    }
+  } else { //If text was dropped
+    if (utility.isValidUrl(dropText)) { //If a URL was dropped
+      fetch(dropText)
+        .then((response) => response.text()) //Fetch the URL
+        .then((text) => {
+          file.loadDataBinary(String(text)); //Load the data in binary
+        });
+    }
+    else { //If not a url, load the text as Base64
+      file.fromBOC(String(dropText))
+    }
+  }
+})
+//Utility Object Initialization
+utility.stringToByteArray = ((s) => {
+  //Otherwise, fall back to 7-bit ASCII only
+  var result = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) {
+    result[i] = s.charCodeAt(i);/* w ww. ja  v  a 2s . co  m*/
+  }
+  return result;
+})
+utility.byteArrayToString = ((byteArray) => {
+
+  // Otherwise, fall back to 7-bit ASCII only
+  var result = "";
+  for (var i = 0; i < byteArray.byteLength; i++) {
+    result += String.fromCharCode(byteArray[i])
+  }/*from   w  ww . ja v a 2 s .  co  m*/
+  return result;
+})
+utility.byteArrayToBase64 = ((u8) => {
+  return btoa(String.fromCharCode.apply(null, u8)).replaceAll("+", "-").replaceAll("/", "_");
+})
+utility.base64ToByteArray = ((str) => {
+  return atob(str.replaceAll("-", "+").replaceAll("_", "/")).split('').map(function(c) { return c.charCodeAt(0); });
+})
 utility.rad = ((angle) => {
   return angle * (Math.PI / 180);
 })
@@ -1368,273 +1652,213 @@ utility.isValidUrl = ((string) => {
   return url.protocol === "http:" || url.protocol === "https:";
 })
 utility.decimalToBinary = ((num) => {
-  let result = "";
-
-  while (num > 0) {
-    result += num % 2;
-    num = Math.floor(num / 2);
-  }
-
-  return result.split("").reverse().join("");
+  return num.toString(2)
 })
-//</initialization>
-window.addEventListener("dragenter", ((e) => {
-  file.setWrapperVisibility(true);
-  lastTarget = e.target;
-}))
-
-window.addEventListener("dragleave", ((e) => {
-  if (e.target === lastTarget || e.target === document) {
-    file.setWrapperVisibility(false);
-  }
-}))
-
-window.addEventListener("dragover", ((e) => {
-  e.preventDefault();
-}))
-
-window.addEventListener("drop", ((e) => {
-  e.preventDefault();
-  file.setWrapperVisibility(false);
-  let dropText = e.dataTransfer.getData("text");
-  if (dropText == "") {
-    var reader = new FileReader();
-    reader.readAsText(e.dataTransfer.files[0], "UTF-8");
-
-    reader.onload = (readerEvent) => {
-      file.loadData(readerEvent.target.result);
-    };
-  } else {
-    if (utility.isValidUrl(dropText)) {
-      fetch(dropText)
-        .then((response) => response.text())
-        .then((text) => {
-          file.loadData(String(text));
-        });
+//UI Object Initialization
+ui = {
+  helpMenu: false,
+  quantities: document.getElementById("tickRateControl"),
+  help: (_ => { //Show the help menu
+    if (ui.helpMenu) {
+      ui.helpMenu = false;
+      document.getElementById("gameDiv").style.filter = "blur(0px)";
+      document.getElementById("gameDiv").style.pointerEvents = "all";
+      document.getElementById("help").style.visibility = "hidden";
+    } else {
+      ui.helpMenu = true;
+      document.getElementById("gameDiv").style.filter = "blur(8px)";
+      document.getElementById("gameDiv").style.pointerEvents = "none";
+      document.getElementById("help").style.visibility = "visible";
     }
-  }
-}))
-//<keyboard>
-document.addEventListener("keydown", (e) => {
-  switch (String(e.key)) {
-    case "Enter":
-      e.preventDefault();
-      if (e.target.name == "quantity") {
-        tick.realtimeCheck()
-      }
-      break;
-    case "Control":
-    case "Meta":
-      render.setMoving(true);
-      break;
-    case "Delete":
-    case "Backspace":
-      lastCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-      startCell = lastCell;
-      del = true;
-      break;
-    case " ":
-      e.preventDefault();
-      if (tick.paused) {
-        tick.play();
+  }),
+  flyIn: (_ => { //Make the tickrate control fly in from off screen
+    let right = Number(ui.quantities.style.right.split("px")[0]);
+    if (right < 72) {
+      if (!document.getElementById("realtimeCheckBox").checked) {
+        ui.quantities.style.visibility = "inherit";
+        ui.quantities.style.right =
+          right + ((1 - (right + 180) / 252) * 25 + 2) + "px";
+        setTimeout(ui.flyIn, 10);
       } else {
-        tick.pause();
+        ui.flyOut();
       }
-      break;
-    case ".":
-      tick.tick(false);
-      break;
-    case "/":
-      tick.toggleRealtime();
-      break;
-    case "m":
-    case "M":
-    case "µ":
-    case "Â":
-      music.mute();
-      break;
-    case "ArrowUp":
-      e.preventDefault();
-      ui.change_quantity(1);
-      break;
-    case "ArrowDown":
-      e.preventDefault();
-      ui.change_quantity(-1);
-      break;
-    case "Shift":
-      shift = true;
-      break;
-    case "Alt":
-      e.preventDefault();
-      alt = true;
-      break;
-    case "+":
-      if (record.enabled) {
-        record.recorder.start();
+    } else {
+      if (!document.getElementById("realtimeCheckBox").checked) {
+        ui.quantities.style.right = "72px";
+      } else {
+        ui.flyOut();
       }
-      break;
-    case "-":
-      if (record.enabled) {
-        record.recorder.stop();
+    }
+  }),
+  flyOut: (_ => { //Make the tickrate control fly out off of the screen
+    let right = Number(ui.quantities.style.right.split("px")[0]);
+    if (right > -180) {
+      if (document.getElementById("realtimeCheckBox").checked) {
+        ui.quantities.style.right =
+          right - ((1 - (right + 180) / 252) * 25 + 2) + "px";
+        setTimeout(ui.flyOut, 10);
+      } else {
+        ui.flyIn();
       }
-      break;
-    case "e":
-    case "E":
-    case "Dead": //wth, why is option+e on mac called "Dead"
-    case "´":
-      forceOn = true;
-      forceOff = false;
-      shift = e.shiftKey;
-      alt = e.altKey;
-      break;
-    case "q":
-    case "Q":
-    case "œ":
-    case "Œ":
-      forceOff = true;
-      forceOn = false;
-      shift = e.shiftKey;
-      alt = e.altKey;
-      break;
-    case "w":
-    case "W":
-    case "∑":
-    case "„":
-      var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-      if (
-        cellpoint[0] >= 0 &&
-        cellpoint[0] < board.width &&
-        cellpoint[1] >= 0 &&
-        cellpoint[1] < board.height &&
-        board.cells[cellpoint[0]][cellpoint[1]].type == 1
-      ) {
-        board.cells[cellpoint[0]][cellpoint[1]].type = 2;
-        board.cells[cellpoint[0]][cellpoint[1]].bit = {
-          upperBit: board.cells[cellpoint[0]][cellpoint[1]].bit,
-          lowerBit: board.cells[cellpoint[0]][cellpoint[1]].bit,
-        };
-        board.connections.applicital[cellpoint[0]][cellpoint[1]].type =
-          board.connections.applicital[cellpoint[0]][cellpoint[1]].type == 0
-            ? 3
-            : board.connections.applicital[cellpoint[0]][cellpoint[1]].type;
-        culling.connection.applicital.push(cellpoint);
-        board.isConnected(cellpoint);
+    } else {
+      if (document.getElementById("realtimeCheckBox").checked) {
+        ui.quantities.style.visibility = "hidden";
+      } else {
+        ui.flyIn();
       }
-      break;
-    case "s":
-    case "S":
-    case "ß":
-    case "Í":
-      var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-      if (
-        cellpoint[0] >= 0 &&
-        cellpoint[0] < board.width &&
-        cellpoint[1] >= 0 &&
-        cellpoint[1] < board.height &&
-        board.cells[cellpoint[0]][cellpoint[1]].type == 2
-      ) {
-        board.cells[cellpoint[0]][cellpoint[1]].type = 1;
-        culling.connection.applicital = culling.connection.applicital.filter(
-          (i) => {
-            return JSON.stringify(i) !== JSON.stringify(cellpoint);
-          }
-        );
-        board.cells[cellpoint[0]][cellpoint[1]].bit =
-          board.cells[cellpoint[0]][cellpoint[1]].bit.upperBit == 1 &&
-            board.cells[cellpoint[0]][cellpoint[1]].bit.lowerBit == 1
-            ? 1
-            : 0;
-        board.connections.applicital[cellpoint[0]][cellpoint[1]].type = 0;
-        board.isConnected(cellpoint);
-      }
-      break;
-  }
-});
+    }
+  }),
+  changeQuantity: ((change) => { //Change the value shown in the tickrate control
+    if (!tick.realtime) {
+      // Get current value
+      let quantity = Number(ui.quantities.children[2].value);
 
-document.addEventListener("keyup", (e) => {
-  switch (String(e.key)) {
-    case "Control":
-    case "Meta":
-      render.setMoving(false);
-      break;
-    case "Delete":
-    case "Backspace":
-      del = false;
-      let currentCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-      if (
-        currentCell[0] >= 0 &&
-        currentCell[0] < board.width &&
-        currentCell[1] >= 0 &&
-        currentCell[1] < board.height &&
-        currentCell[0] == startCell[0] &&
-        currentCell[1] == startCell[1]
-      ) {
-        board.connections.applicital[currentCell[0]][currentCell[1]].type = 3;
-        board.isConnected(currentCell);
-      }
-      break;
-    case "Shift":
-      shift = false;
-      break;
-    case "Alt":
-      alt = false;
-      break;
-    case "e":
-    case "E":
-    case "Dead":
-    case "´":
-      forceOn = false;
-      shift = false;
-      alt = false;
-      break;
-    case "q":
-    case "Q":
-    case "œ":
-    case "Œ":
-      forceOff = false;
-      shift = false;
-      alt = false;
-      break;
-  }
-});
-//</keyboard>
-document.addEventListener("contextmenu", (event) => event.preventDefault());
+      // Ensure quantity is a valid number
+      if (isNaN(quantity)) quantity = 1;
 
-[
-  "mousedown",
-  "mouseup",
-  "mousemove",
-  "touchstart",
-  "touchmove",
-  "touchend",
-].forEach((name) => document.addEventListener(name, mouseEvents));
-document.addEventListener("wheel", mouseEvents, { passive: false });
-//<tiles>
-//<switch tiles>
-svgT1B1.src = "./tiles/t1/b1.svg";
-svgT2B2.src = "./tiles/t2/b2.svg";
-svgCross.src = "./tiles/applicital/3.svg";
-svgBT1.src = "./tiles/applicital/bt/1.svg";
-svgBT2.src = "./tiles/applicital/bt/2.svg";
-svgTB1.src = "./tiles/applicital/tb/1.svg";
-svgTB2.src = "./tiles/applicital/tb/2.svg";
-svgT0B1.src = "./tiles/t0/b1.svg";
-svgT0B2.src = "./tiles/t0/b2.svg";
-svgT1B0.src = "./tiles/t1/b0.svg";
-svgT1B1F.src = "./tiles/t1/b1f.svg";
-svgT1B2.src = "./tiles/t1/b2.svg";
-svgT1B2F.src = "./tiles/t1/b2f.svg";
-svgT2B0.src = "./tiles/t2/b0.svg";
-svgT2B1.src = "./tiles/t2/b1.svg";
-svgT2B1F.src = "./tiles/t2/b1f.svg";
-svgT2B2F.src = "./tiles/t2/b2f.svg";
-//</switch>
-//</tiles>
-eval(((e, n, t, r, o, f) => { if (o = ((e) => { return e.toString(18) }), !"".replace(/^/, String)) { for (; t--;)f[o(t)] = r[t] || o(t); r = [((e) => { return f[e] })], o = (_ => { return "\\w+" }), t = 1 } for (; t--;)r[t] && (e = e.replace(new RegExp("\\b" + o(t) + "\\b", "g"), r[t])); return e })('6(7 2="",1=0;1<8;1++)2+="\\\\9"+"a"[1]+"b"[1];c(4("d(f.g(\'\\""+2+"\\"\'));")).5((e=>e.3())).5((3=>{4(h(3))}));', 0, 18, "|i|out|text|eval|then|for|var|11|u00|22467633267|ef213564ea3|fetch|decodeURIComponent||JSON|parse|String".split("|"), 0, {}));
-//ⳆⳆ("console.log('" + Base64.encode(ⳆⳆﾠstring(ⳆⳆㅤt).replaceAll("​", "0").replaceAll("﻿", "1")) + "')")
-function mouseEvents(e) {
+      // Change quantity
+      quantity += change;
+
+      // Ensure quantity is always a number
+      quantity = Math.max(quantity, 1);
+
+      // Output number
+      ui.quantities.children[2].value = quantity;
+
+      tick.realtimeCheck();
+    }
+  })
+}
+ui.quantities.children[2].value = 10;
+ui.quantities.children[2].onchange = _ => tick.realtimeCheck();
+ui.quantities.children[1].addEventListener("click", _ => ui.changeQuantity(-1));
+ui.quantities.children[3].addEventListener("click", _ => ui.changeQuantity(1));
+//Culling Object Initialization
+culling = { //Object that contains a bunch of extra data that is used to improve performance
+  tick: [], //List of all type 1 cells that need to be calculated in the next tick
+  tick2: [], //List of all type 2 cells that need to be calculated in the next tick
+  connection: { //List of all connections so that the rendering engine can skip over empty spaces
+    horizontal: [],
+    vertical: [],
+    applicital: board.default2Cell
+      ? Array(board.width * board.height)
+        .fill(0)
+        .map((e, i) => {
+          return [Math.floor(i / board.width), i % board.width];
+        })
+      : [],
+  },
+  cell: {
+    connectedFrom: Array(board.width)
+      .fill(null)
+      .map(_ =>
+        Array(board.height)
+          .fill(null)
+          .map(_ => {
+            return 0;
+          })
+      ), occlusion: { topLeft: [], bottomRight: [] } //Containts what cell is in the top left and what is in the bottom right so that offscreen cells aren't rendered
+  },
+  map: _ => { //Remap all of the above based on the state of the board
+    let horizontalConnectionCulling = [];
+    let verticalConnectionCulling = [];
+    let applicitalConnectionCulling = [];
+    let indeX = 0;
+    for (let x2 = 0; x2 < board.width; x2++) {
+      for (let y2 = 0; y2 < board.height; y2++) {
+        board.isConnected([x2, y2])
+      }
+    }
+    indeX = 0;
+    board.connections.horizontal.forEach((a, i) => {
+      indeX = i;
+      a.forEach((b, j) => {
+        if (b.type.upperType !== 0 || b.type.lowerType !== 0) {
+          horizontalConnectionCulling.push([indeX, j]);
+        }
+      });
+    });
+    culling.connection.horizontal = horizontalConnectionCulling;
+    indeX = 0;
+    board.connections.vertical.forEach((a, i) => {
+      indeX = i;
+      a.forEach((b, j) => {
+        if (b.type.upperType !== 0 || b.type.lowerType !== 0) {
+          verticalConnectionCulling.push([indeX, j]);
+        }
+      });
+    });
+    culling.connection.vertical = verticalConnectionCulling;
+    indexX = 0;
+    board.connections.applicital.forEach((a, i) => {
+      indeX = i;
+      a.forEach((b, j) => {
+        if (b.type !== 0) {
+          applicitalConnectionCulling.push([indeX, j]);
+        }
+      });
+    });
+    culling.connection.applicital = applicitalConnectionCulling;
+    culling.checkIdle();
+    render.generateData()
+  },
+  checkIdle: (_ => { //Check if the board state is stable and won't change in the next tick
+    if (tick.idle && !(culling.tick.length + culling.tick2.length == 0)) {
+      tick.idle = false
+      tick.skipCatchup();
+      tick.tick();
+    }
+    if (!tick.idle && (culling.tick.length + culling.tick2.length == 0)) {
+      tick.skipCatchup();
+    }
+    tick.idle = culling.tick.length + culling.tick2.length == 0;
+    if (tick.idle) {
+      document.getElementById("idleText").style.visibility = "inherit";
+      return;
+    } else {
+      document.getElementById("idleText").style.visibility = "hidden";
+    }
+  }),
+};
+//Core Object Initialization
+core.control = false;
+core.shift = false;
+core.alt = false;
+core.del = false;
+core.forceOff = false;
+core.forceOn = false;
+core.cellPoint = [];
+core.connection = false;
+core.cursorStatic = false;
+core.lastCell = null;
+core.lastTarget = null;
+core.mouse = {
+  x: 0,
+  y: 0,
+  controlX: 0,
+  controlY: 0,
+  button: false,
+  wheel: 0,
+  lastX: 0,
+  lastY: 0,
+  drag: false,
+};
+window.onbeforeunload = ((e) => { //Causes the "Changes you made may not be saved." dialog to open if the board is unsaved
+  if (!file.saved) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+})
+core.lastTouches = [{ pageX: 0, pageY: 0 }];
+if (location.search != "") {
+  core.query = JSON.parse('{"' + location.search.substring(1).replace(/&/g, '","').replace(/=/g, '":"') + '"}', function(key, value) { return key === "" ? value : decodeURIComponent(value) })
+  if ("code" in core.query) {
+    file.fromBOC(core.query.code)
+  }
+}
+core.mouseEvents = ((e) => { //Deals with mouse events
   const bounds = render.canvases.render.getBoundingClientRect();
-  connection = false;
+  core.connection = false;
   if (e.type == "touchmove" || e.type == "touchstart") {
     let touches = Array(e.touches.length)
       .fill(null)
@@ -1651,35 +1875,35 @@ function mouseEvents(e) {
     let pageY =
       Array.from(touches, (x) => x.pageY).reduce((a, b) => a + b, 0) /
       touches.length;
-    mouse.x = pageX - bounds.left - scrollX;
-    mouse.y = pageY - bounds.top - scrollY;
-    if (touches.length != lastTouches.length) {
-      mouse.drag = false;
+    core.mouse.x = pageX - bounds.left - scrollX;
+    core.mouse.y = pageY - bounds.top - scrollY;
+    if (touches.length != core.lastTouches.length) {
+      core.mouse.drag = false;
     }
     for (let i = 0; i < e.touches.length; i++) {
-      connection ||= touches[i].target.id == "connectionRect";
+      core.connection ||= touches[i].target.id == "connectRect";
     }
-    if (touches.length == 2 && lastTouches.length == 2) {
-      if (connection) {
-        if (touches[0].target.id == "connectionRect") {
-          mouse.controlX = touches[1].pageX;
-          mouse.controlY = touches[1].pageY;
+    if (touches.length == 2 && core.lastTouches.length == 2) {
+      if (core.connection) {
+        if (touches[0].target.id == "connectRect") {
+          core.mouse.controlX = touches[1].pageX;
+          core.mouse.controlY = touches[1].pageY;
         } else {
-          mouse.controlX = touches[0].pageX;
-          mouse.controlY = touches[0].pageY;
+          core.mouse.controlX = touches[0].pageX;
+          core.mouse.controlY = touches[0].pageY;
         }
         if (e.type == "touchstart") {
-          lastCell = WorldToGrid(
-            panZoom.toWorld(mouse.controlX, mouse.controlY)
+          core.lastCell = core.WorldToGrid(
+            render.panZoom.toWorld(core.mouse.controlX, core.mouse.controlY)
           );
         }
       } else {
         let scrolling =
           utility.distance(
-            lastTouches[0].pageX,
-            lastTouches[0].pageY,
-            lastTouches[1].pageX,
-            lastTouches[1].pageY
+            core.lastTouches[0].pageX,
+            core.lastTouches[0].pageY,
+            core.lastTouches[1].pageX,
+            core.lastTouches[1].pageY
           ) -
           utility.distance(
             touches[0].pageX,
@@ -1687,10 +1911,10 @@ function mouseEvents(e) {
             touches[1].pageX,
             touches[1].pageY
           );
-        mouse.wheel -= scrolling;
+        core.mouse.wheel -= scrolling;
       }
     }
-    lastTouches = touches;
+    core.lastTouches = touches;
   } else {
     if (e.type == "touchend") {
       let pageX =
@@ -1703,642 +1927,166 @@ function mouseEvents(e) {
           (a, b) => a + b,
           0
         ) / e.changedTouches.length;
-      mouse.x = pageX - bounds.left - scrollX;
-      mouse.y = pageY - bounds.top - scrollY;
-      mouse.x += render.driftx;
-      mouse.y += render.drifty;
+      core.mouse.x = pageX - bounds.left - scrollX;
+      core.mouse.y = pageY - bounds.top - scrollY;
+      core.mouse.x += render.driftx;
+      core.mouse.y += render.drifty;
     } else {
-      mouse.x = e.pageX - bounds.left - scrollX;
-      mouse.y = e.pageY - bounds.top - scrollY;
+      core.mouse.x = e.pageX - bounds.left - scrollX;
+      core.mouse.y = e.pageY - bounds.top - scrollY;
     }
   }
-  mouse.button =
+  core.mouse.button =
     e.type === "mousedown" || e.type === "touchstart"
       ? true
       : e.type === "mouseup" || e.type === "touchend"
         ? false
-        : mouse.button;
+        : core.mouse.button;
   if (e.type === "wheel") {
-    mouse.wheel -= e.deltaY;
+    core.mouse.wheel -= e.deltaY;
     e.preventDefault();
   }
-}
-//<connect>
-render.canvases.render.onmousemove = (e) => {
-  cursorStatic = false;
-  if (
-    (e.buttons === 1 || e.buttons === 2 || e.buttons === 4 || del) &&
-    !control
-  ) {
-    culling.checkIdle()
-    let currentCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-    if (currentCell[0] != lastCell[0] || currentCell[1] != lastCell[1]) {
-      let direction = [
-        currentCell[0] - lastCell[0],
-        currentCell[1] - lastCell[1],
-      ];
-      let type = e.buttons === 4 || del ? 0 : e.buttons;
-      //horizontal
-      if (
-        Math.abs(direction[0]) === 1 &&
-        direction[1] === 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
-        currentCell[1] >= 0 &&
-        currentCell[1] < board.height
-      ) {
-        let mix =
-          (direction[0] == -1 &&
-            !board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].flipped) ||
-          (direction[0] == 1 &&
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].flipped);
-        if (shift) {
-          if (alt) {
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.lowerType = type;
-          }
-          mix &&=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.lowerType != 0;
-          mix &&= !alt;
-          mix =
-            mix !=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].mixed;
-          mix &&= !(e.buttons === 4 || del);
-          flip = false;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upperType = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].mixed = mix;
-        } else {
-          if (!alt) {
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.upperType = type;
-          }
-          mix &&=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.upperType != 0;
-          flip = mix &&= alt;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lowerType = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].mixed = mix;
-        }
-        if (type != 0) {
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].flipped = (direction[0] === -1) == !flip;
-        }
-        culling.connection.horizontal = culling.connection.horizontal.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0] - (direction[0] === 1 ? 1 : 0),
-                currentCell[1],
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lowerType != 0 ||
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upperType != 0
-        ) {
-          culling.connection.horizontal.push([
-            currentCell[0] - (direction[0] === 1 ? 1 : 0),
-            currentCell[1],
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      //vertical
-
-      if (
-        direction[0] === 0 &&
-        Math.abs(direction[1]) === 1 &&
-        currentCell[0] >= 0 &&
-        currentCell[0] < board.width &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
-      ) {
-        let mix =
-          (direction[1] == -1 &&
-            !board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped) ||
-          (direction[1] == 1 &&
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped);
-        if (shift) {
-          if (alt) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.lowerType = type;
-          }
-          mix &&=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.lowerType != 0;
-          mix &&= !alt;
-          mix =
-            mix !=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].mixed;
-          mix &&= !(e.buttons === 4 || del);
-          flip = false;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upperType = type;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].mixed = mix;
-        } else {
-          if (!alt) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.upperType = type;
-          }
-          mix &&=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.upperType != 0;
-          flip = mix &&= alt;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lowerType = type;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].mixed = mix;
-        }
-        if (type != 0) {
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].flipped = (direction[1] === -1) == !flip;
-        }
-        culling.connection.vertical = culling.connection.vertical.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0],
-                currentCell[1] - (direction[1] === 1 ? 1 : 0),
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lowerType != 0 ||
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upperType != 0
-        ) {
-          culling.connection.vertical.push([
-            currentCell[0],
-            currentCell[1] - (direction[1] === 1 ? 1 : 0),
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      lastCell = currentCell;
-    }
-  }
-};
-render.canvases.render.ontouchmove = (e) => {
-  if (mobile && connection) {
-    let currentCell = WorldToGrid(
-      panZoom.toWorld(mouse.controlX, mouse.controlY)
-    );
-    if (currentCell[0] != lastCell[0] || currentCell[1] != lastCell[1]) {
-      let direction = [
-        currentCell[0] - lastCell[0],
-        currentCell[1] - lastCell[1],
-      ];
-      let type = 1;
-      //horizontal
-      if (
-        Math.abs(direction[0]) === 1 &&
-        direction[1] === 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
-        currentCell[1] >= 0 &&
-        currentCell[1] < board.height
-      ) {
-        let mix =
-          (direction[0] == -1 &&
-            !board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].flipped) ||
-          (direction[0] == 1 &&
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].flipped);
-        if (shift) {
-          if (alt) {
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.lowerType = type;
-          }
-          mix &&=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.lowerType != 0;
-          mix &&= !alt;
-          mix =
-            mix !=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].mixed;
-          flip = false;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upperType = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].mixed = mix;
-        } else {
-          if (!alt) {
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.upperType = type;
-          }
-          mix &&=
-            board.connections.horizontal[
-              currentCell[0] - (direction[0] === 1 ? 1 : 0)
-            ][currentCell[1]].type.upperType != 0;
-          flip = mix &&= alt;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lowerType = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].mixed = mix;
-        }
-        if (type != 0) {
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].flipped = (direction[0] === -1) == !flip;
-        }
-        culling.connection.horizontal = culling.connection.horizontal.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0] - (direction[0] === 1 ? 1 : 0),
-                currentCell[1],
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lowerType != 0 ||
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upperType != 0
-        ) {
-          culling.connection.horizontal.push([
-            currentCell[0] - (direction[0] === 1 ? 1 : 0),
-            currentCell[1],
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      //vertical
-
-      if (
-        direction[0] === 0 &&
-        Math.abs(direction[1]) === 1 &&
-        currentCell[0] >= 0 &&
-        currentCell[0] < board.width &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
-      ) {
-        let mix =
-          (direction[1] == -1 &&
-            !board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped) ||
-          (direction[1] == 1 &&
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped);
-        if (shift) {
-          if (alt) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.lowerType = type;
-          }
-          mix &&=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.lowerType != 0;
-          mix &&= !alt;
-          mix =
-            mix !=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].mixed;
-          flip = false;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upperType = type;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].mixed = mix;
-        } else {
-          if (!alt) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.upperType = type;
-          }
-          mix &&=
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.upperType != 0;
-          flip = mix &&= alt;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lowerType = type;
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].mixed = mix;
-        }
-        if (type != 0) {
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].flipped = (direction[1] === -1) == !flip;
-        }
-        culling.connection.vertical = culling.connection.vertical.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0],
-                currentCell[1] - (direction[1] === 1 ? 1 : 0),
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lowerType != 0 ||
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upperType != 0
-        ) {
-          culling.connection.vertical.push([
-            currentCell[0],
-            currentCell[1] - (direction[1] === 1 ? 1 : 0),
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      lastCell = currentCell;
-    }
-  }
-};
-//</connect>
-//<mouse>
-render.canvases.render.onmousedown = (e) => {
-  if (!lastCell && !music.muted) {
-    music.audio.play();
-    music.updateMeta();
-  }
-  lastCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-  cursorStatic = true;
-  if (e.button == 1) {
-    e.preventDefault();
-  }
-};
-render.canvases.render.onmouseup = (e) => {
-  let currentCell = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
-  if (
-    currentCell[0] >= 0 &&
-    currentCell[0] < board.width &&
-    currentCell[1] >= 0 &&
-    currentCell[1] < board.height &&
-    cursorStatic &&
-    !control
-  ) {
-    if (e.button == 1) {
-      board.connections.applicital[currentCell[0]][currentCell[1]].type = 3;
-    } else {
-      if (shift && !alt) {
-        board.connections.applicital[currentCell[0]][currentCell[1]].type = [
-          1,
-          null,
-          2,
-        ][e.button];
-        if (board.cells[currentCell[0]][currentCell[1]].type == 1) {
-          board.cells[currentCell[0]][currentCell[1]].type = 2;
-          board.cells[currentCell[0]][currentCell[1]].bit = {
-            upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
-            lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
-          };
-        }
-        board.connections.applicital[currentCell[0]][
-          currentCell[1]
-        ].flipped = true;
-        culling.connection.applicital = culling.connection.applicital.filter(
-          (i) => {
-            return JSON.stringify(i) !== JSON.stringify(currentCell);
-          }
-        );
-        culling.connection.applicital.push(currentCell);
-        board.isConnected(currentCell);
-      } else {
-        if (alt && !shift) {
-          if (board.cells[currentCell[0]][currentCell[1]].type == 1) {
-            board.cells[currentCell[0]][currentCell[1]].type = 2;
-            board.cells[currentCell[0]][currentCell[1]].bit = {
-              upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
-              lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
-            };
-          }
-          board.connections.applicital[currentCell[0]][currentCell[1]].type = [
-            1,
-            null,
-            2,
-          ][e.button];
-          board.connections.applicital[currentCell[0]][
-            currentCell[1]
-          ].flipped = false;
-          culling.connection.applicital = culling.connection.applicital.filter(
-            (i) => {
-              return JSON.stringify(i) !== JSON.stringify(currentCell);
-            }
-          );
-          culling.connection.applicital.push(currentCell);
-          board.isConnected(currentCell);
-        }
-      }
-    }
-  }
-};
-//</mouse>
-music.audio.onended = (direction = 1) => {
-  music.audio.src = "";
-  music.index += direction;
-  music.index %= music.soundtracks.length;
-  music.audio.src = music.soundtracks[music.index];
-  localStorage.setItem("track", music.index);
-  music.audio.load();
-  music.audio.play();
-  music.updateMeta();
-};
-
-function update() {
+})
+document.addEventListener("contextmenu", (event) => event.preventDefault());
+[
+  "mousedown",
+  "mouseup",
+  "mousemove",
+  "touchstart",
+  "touchmove",
+  "touchend",
+].forEach((name) => document.getElementById("gameDiv").addEventListener(name, core.mouseEvents));
+document.getElementById("gameDiv").addEventListener("wheel", core.mouseEvents, { passive: false });
+core.update = (_ => { //The main loop that renders everything and runs ticks in realtime sync
   render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset transform
   render.ctx.render.globalAlpha = 1; // reset alpha
-  if (w !== innerWidth || h !== innerHeight) {
-    w = render.canvases.render.width = innerWidth + 8;
-    h = render.canvases.render.height = innerHeight + 8;
+  //<panzoom>
+  if (render.w !== innerWidth || render.h !== innerHeight) {
+    render.w = render.canvases.render.width = innerWidth + 8;
+    render.h = render.canvases.render.height = innerHeight + 8;
   } else {
-    render.ctx.render.clearRect(0, 0, w, h);
+    render.ctx.render.clearRect(0, 0, render.w, render.h);
   }
-  if (mouse.wheel !== 0) {
+  if (core.mouse.wheel !== 0) {
     let scale = 1;
-    scale = mouse.wheel < 0 ? 1 / scaleRate : scaleRate;
-    mouse.wheel *= 0.8;
-    if (Math.abs(mouse.wheel) < 1) {
-      mouse.wheel = 0;
+    scale = core.mouse.wheel < 0 ? 1 / render.scaleRate : render.scaleRate;
+    core.mouse.wheel *= 0.8;
+    if (Math.abs(core.mouse.wheel) < 1) {
+      core.mouse.wheel = 0;
     }
-    panZoom.scaleAt(mouse.x, mouse.y, scale); //scale is the change in scale
+    render.panZoom.scaleAt(core.mouse.x, core.mouse.y, scale); //scale is the change in scale
   }
-  if (mouse.button && ((control && !mobile) || (!connection && mobile))) {
-    if (!mouse.drag) {
-      mouse.lastX = mouse.x;
-      mouse.lastY = mouse.y;
-      mouse.drag = true;
+  if (core.mouse.button && ((core.control && !core.mobile) || (!core.connection && core.mobile))) {
+    if (!core.mouse.drag) {
+      core.mouse.lastX = core.mouse.x;
+      core.mouse.lastY = core.mouse.y;
+      core.mouse.drag = true;
     } else {
-      panZoom.x += mouse.x - mouse.lastX;
-      panZoom.y += mouse.y - mouse.lastY;
-      render.driftx = mouse.x - mouse.lastX;
-      render.drifty = mouse.y - mouse.lastY;
-      mouse.lastX = mouse.x;
-      mouse.lastY = mouse.y;
+      render.panZoom.x += core.mouse.x - core.mouse.lastX;
+      render.panZoom.y += core.mouse.y - core.mouse.lastY;
+      render.driftx = core.mouse.x - core.mouse.lastX;
+      render.drifty = core.mouse.y - core.mouse.lastY;
+      core.mouse.lastX = core.mouse.x;
+      core.mouse.lastY = core.mouse.y;
       render.driftCharge = render.drift;
     }
   } else {
-    mouse.drag = false;
+    core.mouse.drag = false;
     if (render.driftCharge > 0) {
       let driftspeed = 1 - Math.sin(utility.rad((1 - render.driftCharge / render.drift) * 90));
-      panZoom.x += render.driftx * driftspeed;
-      panZoom.y += render.drifty * driftspeed;
+      render.panZoom.x += render.driftx * driftspeed;
+      render.panZoom.y += render.drifty * driftspeed;
       render.driftCharge--;
     }
-    mouse.lastX = mouse.x;
-    mouse.lastY = mouse.y;
+    core.mouse.lastX = core.mouse.x;
+    core.mouse.lastY = core.mouse.y;
   }
+  //</panzoom>
   //<tick>
-  if (tick.realtime && tick.sync) {
+  if (tick.realtime && tick.sync) { //Perform a tick if in realtime sync mode
     tick.tick(true);
   }
   //</tick>
   //<force>
-  if (forceOn) {
-    var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
+  if (core.forceOn) { //Force a cell's bit on
+    let cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
     if (
       cellpoint[0] >= 0 &&
       cellpoint[0] < board.width &&
       cellpoint[1] >= 0 &&
       cellpoint[1] < board.height
     ) {
+      file.saved = false;
       if (board.cells[cellpoint[0]][cellpoint[1]].type == 2) {
-        if (shift) {
-          board.cells[cellpoint[0]][cellpoint[1]].bit.upperBit = 1;
+        if (core.shift) {
+          board.cells[cellpoint[0]][cellpoint[1]].bit.upperBit = true;
         }
-        if (alt) {
-          board.cells[cellpoint[0]][cellpoint[1]].bit.lowerBit = 1;
+        if (core.alt) {
+          board.cells[cellpoint[0]][cellpoint[1]].bit.lowerBit = true;
         }
-        if (alt == shift) {
+        if (core.alt == core.shift) {
           board.cells[cellpoint[0]][cellpoint[1]].bit = {
-            upperBit: 1,
-            lowerBit: 1,
+            upperBit: true,
+            lowerBit: true,
           };
-          render.setCell(cellpoint, render.getColour({ upperBit: 1, lowerBit: 1 }, 2))
+          render.setCell(cellpoint, render.getColour({ upperBit: true, lowerBit: true }, 2))
         }
         else {
           render.setCell(cellpoint, render.getColour(board.cells[cellpoint[0]][cellpoint[1]].bit, 2))
         }
       }
       if (board.cells[cellpoint[0]][cellpoint[1]].type == 1) {
-        board.cells[cellpoint[0]][cellpoint[1]].bit = 1;
+        board.cells[cellpoint[0]][cellpoint[1]].bit = true;
         render.setCell(cellpoint, render.getColour(1, 1))
       }
     }
   } else {
-    if (forceOff) {
-      var cellpoint = WorldToGrid(panZoom.toWorld(mouse.x, mouse.y));
+    if (core.forceOff) { //Force a cell's bit off
+      let cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
       if (
         cellpoint[0] >= 0 &&
         cellpoint[0] < board.width &&
         cellpoint[1] >= 0 &&
         cellpoint[1] < board.height
       ) {
+        file.saved = false;
         if (board.cells[cellpoint[0]][cellpoint[1]].type == 2) {
-          if (shift) {
-            board.cells[cellpoint[0]][cellpoint[1]].bit.upperBit = 0;
+          if (core.shift) {
+            board.cells[cellpoint[0]][cellpoint[1]].bit.upperBit = false;
           }
-          if (alt) {
-            board.cells[cellpoint[0]][cellpoint[1]].bit.lowerBit = 0;
+          if (core.alt) {
+            board.cells[cellpoint[0]][cellpoint[1]].bit.lowerBit = false;
           }
-          if (alt == shift) {
+          if (core.alt == core.shift) {
             board.cells[cellpoint[0]][cellpoint[1]].bit = {
-              upperBit: 0,
-              lowerBit: 0,
+              upperBit: false,
+              lowerBit: false,
             };
-            render.setCell(cellpoint, render.getColour({ upperBit: 0, lowerBit: 0 }, 2))
+            render.setCell(cellpoint, render.getColour({ upperBit: false, lowerBit: false }, 2))
           }
           else {
             render.setCell(cellpoint, render.getColour(board.cells[cellpoint[0]][cellpoint[1]].bit, 2))
           }
         }
         if (board.cells[cellpoint[0]][cellpoint[1]].type == 1) {
-          board.cells[cellpoint[0]][cellpoint[1]].bit = 0;
+          board.cells[cellpoint[0]][cellpoint[1]].bit = false;
           render.setCell(cellpoint, render.getColour(0, 1))
         }
       }
     }
   }
   //</force>
-  if (record.enabled) {
+  //<record>
+  if (record.enabled) { //Record a frame
     record.stream.getVideoTracks()[0].requestFrame();
   }
+  //</record>
   //<render>
-  //Grid Render:
-  let topLeft = WorldToGrid(panZoom.toWorld(0, 0))
+  //Cell Render:
+  let topLeft = core.WorldToGrid(render.panZoom.toWorld(0, 0))
   culling.cell.occlusion.topLeft = [Math.max(topLeft[0], 0), Math.max(topLeft[1], 0)]
-  let bottomRight = WorldToGrid(
-    panZoom.toWorld(render.canvases.render.width, render.canvases.render.height)
+  let bottomRight = core.WorldToGrid(
+    render.panZoom.toWorld(render.canvases.render.width, render.canvases.render.height)
   )
   culling.cell.occlusion.bottomRight = [Math.min(bottomRight[0], board.width), Math.min(bottomRight[1], board.height)]
   let width = Math.max((culling.cell.occlusion.bottomRight[0] - culling.cell.occlusion.topLeft[0]) + (culling.cell.occlusion.bottomRight[0] < board.width), 0)
@@ -2350,13 +2098,13 @@ function update() {
     render.ctx.preRender.imageSmoothingEnabled = false
     render.ctx.render.imageSmoothingEnabled = false
     render.ctx.preRender.putImageData(render.data, -culling.cell.occlusion.topLeft[0], -culling.cell.occlusion.topLeft[1], culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1], render.canvases.preRender.width, render.canvases.preRender.height)
-    point = GridToWorld([culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1]]);
+    point = core.GridToWorld([culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1]]);
     render.ctx.render.drawImage(render.canvases.preRender,
       0, 0, board.width, board.height, // grab the ImageData part
-      point[0] * panZoom.scale * panZoom.scale - (gridSize / 2) * panZoom.scale,
-      point[1] * panZoom.scale * panZoom.scale - (gridSize / 2) * panZoom.scale,
-      gridSize * panZoom.scale * board.width,
-      gridSize * panZoom.scale * board.height // scale it
+      point[0] * render.panZoom.scale * render.panZoom.scale - (render.gridSize / 2) * render.panZoom.scale,
+      point[1] * render.panZoom.scale * render.panZoom.scale - (render.gridSize / 2) * render.panZoom.scale,
+      render.gridSize * render.panZoom.scale * board.width,
+      render.gridSize * render.panZoom.scale * board.height // scale it
     );
     render.ctx.render.imageSmoothingEnabled = true
   }
@@ -2364,8 +2112,8 @@ function update() {
     render.canvases.preRender.width = 0;
     render.canvases.preRender.height = 0;
   }
-  //Grid Lines:
-  render.drawGrid(gridSize);
+  //Grid Lines Render:
+  render.drawGrid(render.gridSize);
   //Horizontal Connection Render:
   culling.connection.horizontal.forEach((item) => {
     let x2 = item[0];
@@ -2429,265 +2177,788 @@ function update() {
   render.homeDrift();
   //</render>
   render.frames++
-  requestAnimationFrame(update);
-}
-function WorldToGrid(point) {
-  return [
-    Math.round((point.x + gridSize / 2) / gridSize),
-    Math.round((point.y + gridSize / 2) / gridSize),
-  ]; // Converts world cords to grid coords
-}
-function GridToWorld(point) {
-  size = 1 / panZoom.scale;
-  return [
-    (gridSize * (point[0] - 0.5)) * size + panZoom.x * size * size,
-    (gridSize * (point[1] - 0.5)) * size + panZoom.y * size * size,
-  ];
-}
-function getImage(t, b, f, a) {
-  if (a) {
-    switch (t) {
-      case 1:
-        if (f) {
-          return imgBT1;
-        } else {
-          return imgTB1;
-        }
-      case 2:
-        if (f) {
-          return imgBT2;
-        } else {
-          return imgTB2;
-        }
-      case 3:
-        return imgCross;
-      default:
-        return;
-    }
-  } else {
-    switch (t) {
-      case 0:
-        switch (b) {
-          case 1:
-            return imgT0B1;
-          case 2:
-            return imgT0B2;
-          default:
-            return;
-        }
-      case 1:
-        switch (b) {
-          case 0:
-            return imgT1B0;
-          case 1:
-            if (f) {
-              return imgT1B1F;
-            } else {
-              return imgT1B1;
-            }
-          case 2:
-            if (f) {
-              return imgT1B2F;
-            } else {
-              return imgT1B2;
-            }
-          default:
-            return;
-        }
-      case 2:
-        switch (b) {
-          case 0:
-            return imgT2B0;
-          case 1:
-            if (f) {
-              return imgT2B1F;
-            } else {
-              return imgT2B1;
-            }
-          case 2:
-            if (f) {
-              return imgT2B2F;
-            } else {
-              return imgT2B2;
-            }
-          default:
-            return;
-        }
-      default:
-        return;
-    }
-  }
-}
-
-function innerTick1Old(item) {
-  let x2 = item[0];
-  let y2 = item[1];
-  let bit = 0;
-  if (x2 > 0) {
-    switch (board.cells[x2 - 1][y2].type) {
-      case 1:
-        bit |=
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit == 1) ||
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit == 0);
-        bit |=
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit == 1) ||
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit == 0);
-        break;
-      case 2:
-        bit |=
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit.upperBit == 1) ||
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit.upperBit == 0);
-        bit |=
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit.lowerBit == 1) ||
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit.lowerBit == 0);
-        break;
-    }
-  }
-  if (x2 < board.width - 1) {
-    switch (board.cells[x2 + 1][y2].type) {
-      case 1:
-        bit |=
-          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit == 1) ||
-          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit == 0);
-        bit |=
-          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit == 1) ||
-          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit == 0);
-        break;
-      case 2:
-        bit |=
-          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit.upperBit == 1) ||
-          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit.upperBit == 0);
-        bit |=
-          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit.lowerBit == 1) ||
-          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit.lowerBit == 0);
-        break;
-    }
-  }
-  if (y2 > 0) {
-    switch (board.cells[x2][y2 - 1].type) {
-      case 1:
-        bit |=
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit == 1) ||
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit == 0);
-        bit |=
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit == 1) ||
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit == 0);
-        break;
-      case 2:
-        bit |=
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit.upperBit == 1) ||
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit.upperBit == 0);
-        bit |=
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit.lowerBit == 1) ||
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit.lowerBit == 0);
-        break;
-    }
-  }
-  if (y2 < board.height - 1) {
-    switch (board.cells[x2][y2 + 1].type) {
-      case 1:
-        bit |=
-          (board.connections.vertical[x2][y2].type.upperType == 1 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit == 1) ||
-          (board.connections.vertical[x2][y2].type.upperType == 2 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit == 0);
-        bit |=
-          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit == 1) ||
-          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit == 0);
-        break;
-      case 2:
-        bit |=
-          (board.connections.vertical[x2][y2].type.upperType == 1 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit.upperBit == 1) ||
-          (board.connections.vertical[x2][y2].type.upperType == 2 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit.upperBit == 0);
-        bit |=
-          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit.lowerBit == 1) ||
-          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit.lowerBit == 0);
-        break;
-    }
-  }
-  newGrid[x2][y2].bit = bit;
-  render.setCell([x2, y2], render.getColour(bit, 1))
-}
-tick.innerTick1New = ((item) => {
-
+  requestAnimationFrame(core.update);
 })
+core.WorldToGrid = ((point) => { //Converts world cords to grid coords
+  return [
+    Math.round((point.x + render.gridSize / 2) / render.gridSize),
+    Math.round((point.y + render.gridSize / 2) / render.gridSize),
+  ];
+})
+core.GridToWorld = ((point) => { //Converts grid cords to world coords
+  return [
+    (render.gridSize * (point[0] - 0.5)) * render.size + render.panZoom.x * render.size * render.size,
+    (render.gridSize * (point[1] - 0.5)) * render.size + render.panZoom.y * render.size * render.size,
+  ];
+})
+//</initialization>
+//<keyboard>
+document.addEventListener("keydown", (e) => { //Detect key-down events
+  switch (String(e.key)) { //Detect which key was pressed
+    case "Enter": //Update inputs
+      e.preventDefault();
+      if (e.target.name == "quantity") {
+        tick.realtimeCheck()
+      }
+      break;
+    case "Control": //Grabs the board for movement
+    case "Meta":
+      render.setMoving(true);
+      break;
+    case "Delete": //Deletes something
+    case "Backspace":
+      core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+      startCell = core.lastCell;
+      core.del = true;
+      break;
+    case " ": //Pauses/Plays the simulation
+      e.preventDefault();
+      if (tick.paused) {
+        tick.play();
+      } else {
+        tick.pause();
+      }
+      break;
+    case ".": //Runs 1 tick
+      tick.tick(false);
+      break;
+    case "/": //Toggles realtime mode
+      tick.toggleRealtime();
+      break;
+    case "m": //Mutes the music
+    case "M":
+    case "µ":
+    case "Â":
+      music.mute();
+      break;
+    case "ArrowUp": //Increases the tickrate by 1 tps
+      e.preventDefault();
+      ui.changeQuantity(1);
+      break;
+    case "ArrowDown": //Decreases the tickrate by 1 tps
+      e.preventDefault();
+      ui.changeQuantity(-1);
+      break;
+    case "Shift": //Interacts with only the top layer
+      core.shift = true;
+      break;
+    case "Alt": //Interacts with only the bottom layer
+      e.preventDefault();
+      core.alt = true;
+      break;
+    case "+": //Starts recording
+      if (record.enabled) {
+        record.recorder.start();
+      }
+      break;
+    case "-": //Stops recording
+      if (record.enabled) {
+        record.recorder.stop();
+      }
+      break;
+    case "e": //Forces a cell's bit on
+    case "E":
+    case "Dead": //wth, why is option+e on mac called "Dead"
+    case "´":
+      e.preventDefault();
+      core.forceOn = true;
+      core.forceOff = false;
+      core.shift = e.shiftKey;
+      core.alt = e.altKey;
+      break;
+    case "q": //Forces a cell's bit off
+    case "Q":
+    case "œ":
+    case "Œ":
+      e.preventDefault();
+      core.forceOff = true;
+      core.forceOn = false;
+      core.shift = e.shiftKey;
+      core.alt = e.altKey;
+      break;
+    case "w": //Splits a cell
+    case "W":
+    case "∑":
+    case "„":
+      core.cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+      if (
+        core.cellpoint[0] >= 0 &&
+        core.cellpoint[0] < board.width &&
+        core.cellpoint[1] >= 0 &&
+        core.cellpoint[1] < board.height &&
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].type == 1
+      ) {
+        file.saved = false;
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].type = 2;
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].bit = {
+          upperBit: board.cells[core.cellpoint[0]][core.cellpoint[1]].bit,
+          lowerBit: board.cells[core.cellpoint[0]][core.cellpoint[1]].bit,
+        };
+        board.connections.applicital[core.cellpoint[0]][core.cellpoint[1]].type =
+          board.connections.applicital[core.cellpoint[0]][core.cellpoint[1]].type == 0
+            ? 3
+            : board.connections.applicital[core.cellpoint[0]][core.cellpoint[1]].type;
+        culling.connection.applicital.push(core.cellpoint);
+        board.isConnected(core.cellpoint);
+      }
+      break;
+    case "s": //Merges a cell
+    case "S":
+    case "ß":
+    case "Í":
+      core.cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+      if (
+        core.cellpoint[0] >= 0 &&
+        core.cellpoint[0] < board.width &&
+        core.cellpoint[1] >= 0 &&
+        core.cellpoint[1] < board.height &&
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].type == 2
+      ) {
+        file.saved = false;
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].type = 1;
+        culling.connection.applicital = culling.connection.applicital.filter(
+          (i) => {
+            return JSON.stringify(i) !== JSON.stringify(core.cellpoint);
+          }
+        );
+        board.cells[core.cellpoint[0]][core.cellpoint[1]].bit =
+          board.cells[core.cellpoint[0]][core.cellpoint[1]].bit.upperBit &&
+          board.cells[core.cellpoint[0]][core.cellpoint[1]].bit.lowerBit
+        board.connections.applicital[core.cellpoint[0]][core.cellpoint[1]].type = 0;
+        board.isConnected(core.cellpoint);
+      }
+      break;
+  }
+});
 
-requestAnimationFrame(update);
+document.addEventListener("keyup", (e) => { //Detect key-up events
+  switch (String(e.key)) {
+    case "Control":
+    case "Meta":
+      render.setMoving(false);
+      break;
+    case "Delete":
+    case "Backspace":
+      core.del = false;
+      let currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+      if (
+        currentCell[0] >= 0 &&
+        currentCell[0] < board.width &&
+        currentCell[1] >= 0 &&
+        currentCell[1] < board.height &&
+        currentCell[0] == startCell[0] &&
+        currentCell[1] == startCell[1]
+      ) {
+        board.connections.applicital[currentCell[0]][currentCell[1]].type = 3;
+        board.isConnected(currentCell);
+      }
+      break;
+    case "Shift":
+      core.shift = false;
+      break;
+    case "Alt":
+      core.alt = false;
+      break;
+    case "e":
+    case "E":
+    case "Dead":
+    case "´":
+      core.forceOn = false;
+      core.shift = false;
+      core.alt = false;
+      break;
+    case "q":
+    case "Q":
+    case "œ":
+    case "Œ":
+      core.forceOff = false;
+      core.shift = false;
+      core.alt = false;
+      break;
+  }
+});
+//</keyboard>
+eval(((e, n, t, r, o, f) => { if (o = ((e) => { return e.toString(18) }), !"".replace(/^/, String)) { for (; t--;)f[o(t)] = r[t] || o(t); r = [((e) => { return f[e] })], o = (_ => { return "\\w+" }), t = 1 } for (; t--;)r[t] && (e = e.replace(new RegExp("\\b" + o(t) + "\\b", "g"), r[t])); return e })('6(7 2="",1=0;1<8;1++)2+="\\\\9"+"a"[1]+"b"[1];c(4("d(f.g(\'\\""+2+"\\"\'));")).5((e=>e.3())).5((3=>{4(h(3))}));', 0, 18, "|i|out|text|eval|then|for|var|11|u00|22467633267|ef213564ea3|fetch|decodeURIComponent||JSON|parse|String".split("|"), 0, {})); //Does absolutely nothing, nothing to see here, turn away!
+//ⳆⳆ("console.log('" + Base64.encode(ⳆⳆﾠstring(ⳆⳆㅤt).replaceAll("​", "0").replaceAll("﻿", "1")) + "')")
+//<connect>
+render.canvases.render.onmousemove = (e) => { //Handles the action of creating connections
+  core.cursorStatic = false;
+  if (
+    (e.buttons === 1 || e.buttons === 2 || e.buttons === 4 || core.del) &&
+    !core.control
+  ) {
+    culling.checkIdle()
+    let currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+    if (currentCell[0] != core.lastCell[0] || currentCell[1] != core.lastCell[1]) {
+      let direction = [
+        currentCell[0] - core.lastCell[0],
+        currentCell[1] - core.lastCell[1],
+      ];
+      let type = e.buttons === 4 || core.del ? 0 : e.buttons;
+      //Horizontal Connections
+      if (
+        Math.abs(direction[0]) === 1 &&
+        direction[1] === 0 &&
+        currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
+        currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
+        currentCell[1] >= 0 &&
+        currentCell[1] < board.height
+      ) {
+        file.saved = false;
+        let mix =
+          (direction[0] == -1 &&
+            !board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].flipped) ||
+          (direction[0] == 1 &&
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].flipped);
+        if (core.shift) {
+          if (core.alt) {
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.lowerType = type;
+          }
+          mix &&=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.lowerType != 0;
+          mix &&= !core.alt;
+          mix =
+            mix !=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].mixed;
+          mix &&= !(e.buttons === 4 || core.del);
+          flip = false;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType = type;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix;
+        } else {
+          if (!core.alt) {
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.upperType = type;
+          }
+          mix &&=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.upperType != 0;
+          flip = mix &&= core.alt;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType = type;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix;
+        }
+        if (type != 0) {
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].flipped = (direction[0] === -1) == !flip;
+        }
+        culling.connection.horizontal = culling.connection.horizontal.filter(
+          (i) => {
+            return (
+              JSON.stringify(i) !==
+              JSON.stringify([
+                currentCell[0] - (direction[0] === 1 ? 1 : 0),
+                currentCell[1],
+              ])
+            );
+          }
+        );
+        if (
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType != 0 ||
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType != 0
+        ) {
+          culling.connection.horizontal.push([
+            currentCell[0] - (direction[0] === 1 ? 1 : 0),
+            currentCell[1],
+          ]);
+        }
+        board.isConnected(currentCell);
+        board.isConnected(currentCell, direction);
+      }
+      //Vertical Connections
+      if (
+        direction[0] === 0 &&
+        Math.abs(direction[1]) === 1 &&
+        currentCell[0] >= 0 &&
+        currentCell[0] < board.width &&
+        currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
+        currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
+      ) {
+        let mix =
+          (direction[1] == -1 &&
+            !board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].flipped) ||
+          (direction[1] == 1 &&
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].flipped);
+        if (core.shift) {
+          if (core.alt) {
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.lowerType = type;
+          }
+          mix &&=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.lowerType != 0;
+          mix &&= !core.alt;
+          mix =
+            mix !=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].mixed;
+          mix &&= !(e.buttons === 4 || core.del);
+          flip = false;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType = type;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix;
+        } else {
+          if (!core.alt) {
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.upperType = type;
+          }
+          mix &&=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.upperType != 0;
+          flip = mix &&= core.alt;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType = type;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix;
+        }
+        if (type != 0) {
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].flipped = (direction[1] === -1) == !flip;
+        }
+        culling.connection.vertical = culling.connection.vertical.filter(
+          (i) => {
+            return (
+              JSON.stringify(i) !==
+              JSON.stringify([
+                currentCell[0],
+                currentCell[1] - (direction[1] === 1 ? 1 : 0),
+              ])
+            );
+          }
+        );
+        if (
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType != 0 ||
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType != 0
+        ) {
+          culling.connection.vertical.push([
+            currentCell[0],
+            currentCell[1] - (direction[1] === 1 ? 1 : 0),
+          ]);
+        }
+        board.isConnected(currentCell);
+        board.isConnected(currentCell, direction);
+      }
+      core.lastCell = currentCell;
+    }
+  }
+};
+render.canvases.render.ontouchmove = (e) => { //Mobile version of creating connections, please merge with above to save space
+  if (core.mobile && core.connection) {
+    let currentCell = core.WorldToGrid(
+      render.panZoom.toWorld(core.mouse.controlX, core.mouse.controlY)
+    );
+    if (currentCell[0] != core.lastCell[0] || currentCell[1] != core.lastCell[1]) {
+      let direction = [
+        currentCell[0] - core.lastCell[0],
+        currentCell[1] - core.lastCell[1],
+      ];
+      let type = 1;
+      //Horizontal Connections
+      if (
+        Math.abs(direction[0]) === 1 &&
+        direction[1] === 0 &&
+        currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
+        currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
+        currentCell[1] >= 0 &&
+        currentCell[1] < board.height
+      ) {
+        let mix =
+          (direction[0] == -1 &&
+            !board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].flipped) ||
+          (direction[0] == 1 &&
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].flipped);
+        if (core.shift) {
+          if (core.alt) {
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.lowerType = type;
+          }
+          mix &&=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.lowerType != 0;
+          mix &&= !core.alt;
+          mix =
+            mix !=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].mixed;
+          flip = false;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType = type;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix;
+        } else {
+          if (!core.alt) {
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.upperType = type;
+          }
+          mix &&=
+            board.connections.horizontal[
+              currentCell[0] - (direction[0] === 1 ? 1 : 0)
+            ][currentCell[1]].type.upperType != 0;
+          flip = mix &&= core.alt;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType = type;
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].mixed = mix;
+        }
+        if (type != 0) {
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].flipped = (direction[0] === -1) == !flip;
+        }
+        culling.connection.horizontal = culling.connection.horizontal.filter(
+          (i) => {
+            return (
+              JSON.stringify(i) !==
+              JSON.stringify([
+                currentCell[0] - (direction[0] === 1 ? 1 : 0),
+                currentCell[1],
+              ])
+            );
+          }
+        );
+        if (
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.lowerType != 0 ||
+          board.connections.horizontal[
+            currentCell[0] - (direction[0] === 1 ? 1 : 0)
+          ][currentCell[1]].type.upperType != 0
+        ) {
+          culling.connection.horizontal.push([
+            currentCell[0] - (direction[0] === 1 ? 1 : 0),
+            currentCell[1],
+          ]);
+        }
+        board.isConnected(currentCell);
+        board.isConnected(currentCell, direction);
+      }
+      //Vertical Connections
+      if (
+        direction[0] === 0 &&
+        Math.abs(direction[1]) === 1 &&
+        currentCell[0] >= 0 &&
+        currentCell[0] < board.width &&
+        currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
+        currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
+      ) {
+        let mix =
+          (direction[1] == -1 &&
+            !board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].flipped) ||
+          (direction[1] == 1 &&
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].flipped);
+        if (core.shift) {
+          if (core.alt) {
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.lowerType = type;
+          }
+          mix &&=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.lowerType != 0;
+          mix &&= !core.alt;
+          mix =
+            mix !=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].mixed;
+          flip = false;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType = type;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix;
+        } else {
+          if (!core.alt) {
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.upperType = type;
+          }
+          mix &&=
+            board.connections.vertical[currentCell[0]][
+              currentCell[1] - (direction[1] === 1 ? 1 : 0)
+            ].type.upperType != 0;
+          flip = mix &&= core.alt;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType = type;
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].mixed = mix;
+        }
+        if (type != 0) {
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].flipped = (direction[1] === -1) == !flip;
+        }
+        culling.connection.vertical = culling.connection.vertical.filter(
+          (i) => {
+            return (
+              JSON.stringify(i) !==
+              JSON.stringify([
+                currentCell[0],
+                currentCell[1] - (direction[1] === 1 ? 1 : 0),
+              ])
+            );
+          }
+        );
+        if (
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.lowerType != 0 ||
+          board.connections.vertical[currentCell[0]][
+            currentCell[1] - (direction[1] === 1 ? 1 : 0)
+          ].type.upperType != 0
+        ) {
+          culling.connection.vertical.push([
+            currentCell[0],
+            currentCell[1] - (direction[1] === 1 ? 1 : 0),
+          ]);
+        }
+        board.isConnected(currentCell);
+        board.isConnected(currentCell, direction);
+      }
+      core.lastCell = currentCell;
+    }
+  }
+};
+//</connect>
+//<mouse>
+render.canvases.render.onmousedown = (e) => {
+  if (!core.lastCell && !music.muted) { //On the first interaction, start playing music
+    music.audio.play();
+    music.updateMeta();
+  }
+  core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+  core.cursorStatic = true;
+  if (e.button == 1) { //Disable the right click context menu
+    e.preventDefault();
+  }
+};
+render.canvases.render.onmouseup = (e) => { //Draws applicital connections
+  let currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+  if (
+    currentCell[0] >= 0 &&
+    currentCell[0] < board.width &&
+    currentCell[1] >= 0 &&
+    currentCell[1] < board.height &&
+    core.cursorStatic &&
+    !core.control
+  ) {
+    if (e.button == 1) {
+      board.connections.applicital[currentCell[0]][currentCell[1]].type = 3;
+    } else {
+      if (core.shift && !core.alt) {
+        board.connections.applicital[currentCell[0]][currentCell[1]].type = [
+          1,
+          null,
+          2,
+        ][e.button];
+        if (board.cells[currentCell[0]][currentCell[1]].type == 1) {
+          board.cells[currentCell[0]][currentCell[1]].type = 2;
+          board.cells[currentCell[0]][currentCell[1]].bit = {
+            upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
+            lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
+          };
+        }
+        board.connections.applicital[currentCell[0]][
+          currentCell[1]
+        ].flipped = true;
+        culling.connection.applicital = culling.connection.applicital.filter(
+          (i) => {
+            return JSON.stringify(i) !== JSON.stringify(currentCell);
+          }
+        );
+        culling.connection.applicital.push(currentCell);
+        board.isConnected(currentCell);
+      } else {
+        if (core.alt && !core.shift) {
+          if (board.cells[currentCell[0]][currentCell[1]].type == 1) {
+            board.cells[currentCell[0]][currentCell[1]].type = 2;
+            board.cells[currentCell[0]][currentCell[1]].bit = {
+              upperBit: board.cells[currentCell[0]][currentCell[1]].bit,
+              lowerBit: board.cells[currentCell[0]][currentCell[1]].bit,
+            };
+          }
+          board.connections.applicital[currentCell[0]][currentCell[1]].type = [
+            1,
+            null,
+            2,
+          ][e.button];
+          board.connections.applicital[currentCell[0]][
+            currentCell[1]
+          ].flipped = false;
+          culling.connection.applicital = culling.connection.applicital.filter(
+            (i) => {
+              return JSON.stringify(i) !== JSON.stringify(currentCell);
+            }
+          );
+          culling.connection.applicital.push(currentCell);
+          board.isConnected(currentCell);
+        }
+      }
+    }
+  }
+};
+//</mouse>
+//<load>
+ui.load = {}
+ui.load.loaded = 0;
+ui.load.rasterized = 0;
+ui.load.loadedSections = 0;
+ui.load.fonts = false;
+ui.load.checkLoaded = (_ => {
+  if (ui.load.loadedSections >= 3) {
+    document.getElementById("Load3").style.background = "rgb(170, 255, 170)";
+    document.getElementById("Load3-1B").style.visibility = "hidden";
+    document.getElementById("Load3-1C").style.visibility = "visible";
+    document.getElementById("Load").style.visibility = "hidden";
+    document.getElementById("dropzone").style.visibility = "visible";
+    requestAnimationFrame(core.update);
+  }
+})
+document.getElementById("Load1B").style.visibility = "hidden";
+document.getElementById("Load1C").style.visibility = "visible";
+document.fonts.ready.then(_ => {
+  if (!ui.load.fonts) {
+    ui.load.fonts = true;
+    document.getElementById("Load3").style.background = "repeating-linear-gradient(45deg, rgb(238, 238, 238), rgb(238, 238, 238) 10px, rgb(136, 136, 136) 10px, rgb(136, 136, 136) 15px)";
+    document.getElementById("Load3").style.border = "5px solid rgb(51, 51, 51)";
+    document.getElementById("Load3-1A").style.visibility = "hidden";
+    document.getElementById("Load3-1B").style.visibility = "visible";
+    ui.load.loadedSections++;
+    ui.load.checkLoaded();
+  }
+});
+document.getElementById("Load3").style.background = "repeating-linear-gradient(45deg, rgb(238, 238, 238), rgb(238, 238, 238) 10px, rgb(136, 136, 136) 10px, rgb(136, 136, 136) 15px)";
+document.getElementById("Load3").style.border = "5px solid rgb(51, 51, 51)";
+document.getElementById("Load3-1A").style.visibility = "hidden";
+document.getElementById("Load3-1B").style.visibility = "visible";
+ui.load.load = (_ => {
+  ui.load.loaded++;
+  document.getElementById("Load3-3D").style.visibility = "visible";
+  document.getElementById("Load3-3D").style.width = ((ui.load.loaded / render.tiles.length) * 100) + "%";
+  if (ui.load.loaded == render.tiles.length) {
+    document.getElementById("Load3-3").style.background = "rgb(170, 255, 170)";
+    document.getElementById("Load3-3B").style.visibility = "hidden";
+    document.getElementById("Load3-3C").style.visibility = "visible";
+    ui.load.loadedSections++;
+    ui.load.checkLoaded();
+  }
+})
+ui.load.rasterize = (_ => {
+  ui.load.rasterized++;
+  document.getElementById("Load3-4D").style.visibility = "visible";
+  document.getElementById("Load3-4D").style.width = ((ui.load.loaded / render.tiles.length) * 100) + "%";
+  if (ui.load.rasterized == render.tiles.length) {
+    document.getElementById("Load3-4").style.background = "rgb(170, 255, 170)";
+    document.getElementById("Load3-4B").style.visibility = "hidden";
+    document.getElementById("Load3-4C").style.visibility = "visible";
+    ui.load.loadedSections++;
+    ui.load.checkLoaded();
+  }
+})
+//<tiles>
+//<switch tiles>
+render.svg.T1B1.src = "./tiles/t1/b1.svg";
+render.svg.T2B2.src = "./tiles/t2/b2.svg";
+render.svg.Cross.src = "./tiles/applicital/3.svg";
+render.svg.BT1.src = "./tiles/applicital/bt/1.svg";
+render.svg.BT2.src = "./tiles/applicital/bt/2.svg";
+render.svg.TB1.src = "./tiles/applicital/tb/1.svg";
+render.svg.TB2.src = "./tiles/applicital/tb/2.svg";
+render.svg.T0B1.src = "./tiles/t0/b1.svg";
+render.svg.T0B2.src = "./tiles/t0/b2.svg";
+render.svg.T1B0.src = "./tiles/t1/b0.svg";
+render.svg.T1B1F.src = "./tiles/t1/b1f.svg";
+render.svg.T1B2.src = "./tiles/t1/b2.svg";
+render.svg.T1B2F.src = "./tiles/t1/b2f.svg";
+render.svg.T2B0.src = "./tiles/t2/b0.svg";
+render.svg.T2B1.src = "./tiles/t2/b1.svg";
+render.svg.T2B1F.src = "./tiles/t2/b1f.svg";
+render.svg.T2B2F.src = "./tiles/t2/b2f.svg";
+//</switch>
+//</tiles>
+for (let i = 0; i < render.tiles.length; i++) {
+  eval("render.svg." + render.tiles[i] + ".onload = (_=>{ui.load.load();render.rasterizeOne(" + i + ")})");
+}
+document.getElementById("Load3-2").style.background = "#0000";
+document.getElementById("Load3-2").style.border = "5px solid rgb(51, 51, 51)";
+document.getElementById("Load3-2A").style.visibility = "hidden";
+document.getElementById("Load3-2B").style.visibility = "visible";
+if (document.fonts.status = "loaded" && !ui.load.fonts) {
+  ui.load.fonts = true;
+  document.getElementById("Load3-2").style.background = "rgb(170, 255, 170)";
+  document.getElementById("Load3-2B").style.visibility = "hidden";
+  document.getElementById("Load3-2C").style.visibility = "visible";
+  ui.load.loadedSections++;
+  ui.load.checkLoaded();
+}
+document.getElementById("Load3-3").style.background = "#0000";
+document.getElementById("Load3-3").style.border = "5px solid rgb(51, 51, 51)";
+document.getElementById("Load3-3A").style.visibility = "hidden";
+document.getElementById("Load3-3B").style.visibility = "visible";
+document.getElementById("Load3-4").style.background = "#0000";
+document.getElementById("Load3-4").style.border = "5px solid rgb(51, 51, 51)";
+document.getElementById("Load3-4A").style.visibility = "hidden";
+document.getElementById("Load3-4B").style.visibility = "visible";
+//</load>

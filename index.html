@@ -1,34 +1,242 @@
-<!DOCTYPE html>
-<html>
+ <!DOCTYPE html>
+<html lang="en" style="touch-action: none;">
 
 <head>
   <style id="stndz-style"></style>
   <meta charset="utf-8">
-  <meta name="viewport"
-    content="minimal-ui, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Or Cells</title>
+  <title>Orcells</title>
   <meta content="A Complicated Simple Logic Simulator" property="og:description">
+  <meta name="description"
+    content="A complicated simple turing complete logic simulator about connecting squares in a grid that turn on and off to create devices/computers">
   <meta content="https://or-test.utilicell.com/" property="og:url">
   <meta content="#eeeeee" data-react-helmet="true" name="theme-color">
   <meta name="apple-mobile-web-app-status-bar-style" content="#eeeeee">
   <!--<switch head>-->
   <meta content="Or Cells (Test Branch)" property="og:title">
   <meta content="https://or-test.utilicell.com/icon2.png" property="og:image">
+  <link rel="manifest" href="/manifest.json">
   <link href="./style.css" rel="stylesheet" type="text/css">
   <link rel="icon" type="image/svg+xml" href="./icon2.svg">
   <!--</switch>-->
 </head>
-
-<body>
+<body style="touch-action: none;">
+<div id="Load" style="
+    width: 95%;
+    height: 95%;
+    background: #eee;
+    border-radius: 56px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    border: 5px solid rgb(51, 51, 51);
+    visibility: visible;
+"><h1 style="
+    position: absolute;
+    left: 50%;
+    top: 5%;
+    transform: translate(-50%, -50%);
+    width: fit-content;
+    margin: 0;
+">Loading...</h1>
+<div style="width: 75%; height: 15%; background: repeating-linear-gradient(45deg, rgb(238, 238, 238), rgb(238, 238, 238) 10px, rgb(136, 136, 136) 10px, rgb(136, 136, 136) 15px); border-radius: 28px; position: absolute; top: 10%; left: 50%; transform: translateX(-50%); border: 5px solid rgb(51, 51, 51); visibility: visible;" id="Load1B">
+  <h1 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+">Waiting For Script</h1></div><div style="width: 75%; height: 15%; background: rgb(170, 255, 170); border-radius: 28px; position: absolute; top: 10%; left: 50%; transform: translateX(-50%); border: 5px solid rgb(51, 51, 51); visibility: hidden;" id="Load1C"><h2 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 2em;
+">Script Running</h2></div><div style="width: 75%;height: 60%;background: rgb(238, 238, 238);border-radius: 28px;position: absolute;top: 30%;left: 50%;transform: translateX(-50%);border: 2.5px solid rgb(51, 51, 51);visibility: visible;" id="Load3"><p style="
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    visibility: visible;
+" id="Load3-1A">Texture</p><h1 style="
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    visibility: hidden;
+" id="Load3-1B">Texturing</h1><h2 style="
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    font-size: 2em;
+    visibility: hidden;
+" id="Load3-1C">Textured</h2><div style="
+    width: 80%;
+    height: 20%;
+    background: rgb(238, 238, 238);
+    border-radius: 28px;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2.5px solid
+    rgb(51, 51, 51);
+" id="Load3-2"><p style="
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: visible;
+" id="Load3-2A">Load Fonts</p><h1 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: hidden;
+" id="Load3-2B">Loading Fonts</h1><h2 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 2em;
+    visibility: hidden;
+" id="Load3-2C">Loaded Fonts</h2></div><div style="
+    width: 80%;
+    height: 20%;
+    background: rgb(238, 238, 238);
+    border-radius: 28px;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2.5px solid
+    rgb(51, 51, 51);
+    visibility: visible;
+" id="Load3-3"><p style="
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: visible;
+" id="Load3-3A">Load Textures</p><h1 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: hidden;
+" id="Load3-3B">Loading Textures</h1><h2 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 2em;
+    visibility: hidden;
+" id="Load3-3C">Loaded Textures</h2><div style="
+    position: absolute;
+    top: 50%;
+    left: -5px;
+    width: 0%;
+    height: 100%;
+    margin: 0;
+    background-color: #afa;
+    color: #fff;
+    border: inherit;
+    border-radius: inherit;
+    transform: translateY(-50%);
+    z-index: -1;
+    visibility: hidden;
+" id="Load3-3D"></div></div><div style="
+    width: 80%;
+    height: 20%;
+    background: rgb(238, 238, 238);
+    border-radius: 28px;
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2.5px solid
+    rgb(51, 51, 51);
+    visibility: visible;
+" id="Load3-4"><p style="
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: visible;
+" id="Load3-4A">Rasterize Textures</p><h1 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    visibility: hidden;
+" id="Load3-4B">Rasterizing Textures</h1><h2 style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 2em;
+    visibility: hidden;
+" id="Load3-4C">Rasterized Textures</h2><div style="
+    position: absolute;
+    top: 50%;
+    left: -5px;
+    width: 0%;
+    height: 100%;
+    margin: 0;
+    background-color: #afa;
+    color: #fff;
+    border: inherit;
+    border-radius: inherit;
+    transform: translateY(-50%);
+    z-index: -1;
+    visibility: hidden;
+" id="Load3-4D"></div></div></div></div>
   <div class="wrapper" style="visibility:hidden; opacity:0">
     <h1 style="
     font-size: 100px;
 ">DROP HERE +</h1>
   </div>
-  <form action="/upload" class="dropzone" id="dropzone" />
-  </div>
+  <form action="/upload" class="dropzone" id="dropzone" style="
+    visibility: hidden;
+">
   <div id="gameDiv" class="mainDiv">
     <canvas id="svg" style="visibility: hidden;"></canvas>
     <canvas id="preRender"
@@ -41,7 +249,7 @@
       <h1 style="position: absolute;left: 20px;top: 60px;color: #ff0000;cursor: default;">Skip:</h1>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
         viewBox="0 0 310.285 310.285"
-        style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: all;"
+        style="position: absolute;left: 110px;top: 69px;color: #ff0000;filter: invert(28%) sepia(91%) saturate(7274%) hue-rotate(356deg) brightness(102%) contrast(123%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: none;"
         id="behindSkip" xml:space="preserve" width="64px" height="64px" onclick="tick.skipCatchup()">
         <path
           d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z" />
@@ -52,7 +260,7 @@
       <h1 style="position: absolute;left: 20px;top: 60px;color: #0000ff;">Ignore:</h1>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
         viewBox="0 0 310.285 310.285"
-        style="position: absolute;left: 150px;top: 69px;color: #ff0000;filter: invert(7%) sepia(97%) saturate(7432%) hue-rotate(247deg) brightness(106%) contrast(143%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: all;"
+        style="position: absolute;left: 150px;top: 69px;color: #ff0000;filter: invert(7%) sepia(97%) saturate(7432%) hue-rotate(247deg) brightness(106%) contrast(143%) drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;pointer-events: none;"
         id="aheadSkip" xml:space="preserve" width="64px" height="64px" onclick="tick.skipCatchup()">
         <path
           d="M155.143,0C69.597,0,0,69.596,0,155.142s69.597,155.143,155.143,155.143s155.143-69.597,155.143-155.143  S240.689,0,155.143,0z M236.437,167.19l-65.64,42.901c-10.123,6.629-18.655,2.152-18.655-9.948v-21.171l-47.059,31.119  c-10.123,6.629-17.941,2.152-17.941-9.948v-90c0-12.1,7.818-16.577,17.942-9.949l47.058,31.114v-21.165  c0-12.1,8.532-16.577,18.655-9.949l65.763,42.894C246.684,149.715,246.56,160.561,236.437,167.19z" />
@@ -71,7 +279,7 @@
     drop-shadow(2px 2px 0px #666666)
     drop-shadow(-1px 2px 0px #ffffff);
     cursor: pointer;
-" onclick="file.download('untitled.orcell')">
+" onclick="file.downloadBinary('untitled')">
       <g id="g10" style="
     margin: 0;
 ">
@@ -129,7 +337,7 @@
 
     </svg>
     <h1 id="idleText"
-      style="position: absolute;right: 16px;bottom: 116px;text-align: center;width: 247px;visibility: visible;">Idle
+      style="position: absolute;right: 16px;bottom: 116px;text-align: center;width: 247px;visibility: inherit;">Idle
     </h1>
     <fieldset id="tickRateControl" data-quantity="" style="
     position: absolute;
@@ -138,16 +346,16 @@
 ">
       <legend>Change quantity</legend>
       <button type="button" title="Slower" class="sub"></button><input type="number" step="0.01" name="quantity"
-        pattern="[0-9]+"><button type="button" title="Faster" class="add"></button>
+        pattern="[0-9]+" aria-label="Tickrate Control"><button type="button" title="Faster" class="add"></button>
     </fieldset>
     <input type="checkbox" class="switch_1" style="
     position: absolute;
     right: 17px;
     bottom: 85px;
-" id="realtimeCheckBox" onclick="tick.realtimeCheck()">
+" id="realtimeCheckBox" onclick="tick.realtimeCheck()" aria-label="Toggle Realtime Mode">
     <svg id="pause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
       id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512"
-      style="position: absolute;right: 100px;bottom: 17px;visibility: visible;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
+      style="position: absolute;right: 100px;bottom: 17px;visibility: inherit;enable-background:new 0 0 512 512;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff); cursor: pointer;"
       xml:space="preserve" width="64px" height="64px" onclick="tick.pause()">
       <path
         d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M224,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z M352,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z" />
@@ -240,7 +448,7 @@
         </g>
         <rect
           style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill;pointer-events: all;cursor: pointer;"
-          id="connectionRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329"></rect>
+          id="connectRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329"></rect>
       </svg>
       <svg id="forceButton" width="96px" height="96px" version="1.0" xml:space="preserve"
         xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"
@@ -301,16 +509,16 @@
         <rect
           style="fill:#040404;fill-opacity:1;stroke:#000000;stroke-width:9.57744;stroke-dasharray:none;stroke-opacity:1"
           id="rect11004" width="110.42256" height="230.42256" x="4.7887187" y="4.7887187"
-          clip-path="url(#clipPath27035)"></rect>
+          clip-path="url(#clipPath27035)" />
         <rect
           style="fill:url(#linearGradient27667);fill-opacity:1;stroke:#eeeeee;stroke-width:9.57744;stroke-dasharray:none;stroke-opacity:1"
           id="rect11004-8" width="110.42256" height="230.42256" x="124.78872" y="4.7887187"
-          clip-path="url(#clipPath27031)"></rect>
+          clip-path="url(#clipPath27031)" />
         <rect style="fill:#000000;stroke:#333333;stroke-width:19.4432;stroke-dasharray:none;stroke-opacity:1"
-          id="rect1926" width="3.519433" height="220.55676" x="118.24029" y="9.7216167"></rect>
+          id="rect1926" width="3.519433" height="220.55676" x="118.24029" y="9.7216167" />
         <rect
           style="fill:none;fill-opacity:0.564189;fill-rule:nonzero;stroke:#333333;stroke-width:17.722;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill;pointer-events: all;cursor: pointer;"
-          id="forceRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329"></rect>
+          id="forceRect" height="222.27797" x="8.8610001" y="8.8610153" width="222.278" ry="37.046329" />
       </svg>
     </div>
   </div>
@@ -369,9 +577,10 @@
     display: flex;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    cursor: pointer;
 " class="textButton" onclick="window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ')"><a style="
-    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
-">Video Tutorial</a></button>
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);pointer-events: none;
+" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Video Tutorial</a></button>
     <!--<switch tutorialButton>-->
     <button type="button" style="
     margin: 0;
@@ -384,9 +593,10 @@
     display: flex;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    cursor: pointer;
 " class="textButton" onclick="window.open('./tutorial/tutorial.html')"><a style="
-    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
-">Text Tutorial</a></button>
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);pointer-events: none;
+" href="./tutorial/tutorial.html">Text Tutorial</a></button>
     <!--</switch>-->
     <button type="button" style="
     margin: 0;
@@ -399,10 +609,12 @@
     display: flex;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    cursor: pointer;
 " class="textButton" onclick="window.open('https://discord.gg/2MZS7XZdXj')"><a style="
-    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
-">Discord</a></button>
+    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);pointer-events: none;
+" href="https://discord.gg/2MZS7XZdXj">Discord</a></button>
   </div>
+  </form>
   <!--<switch script>-->
   <script src="./script.js"></script>
   <!--</switch>-->

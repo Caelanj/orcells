@@ -2,28 +2,43 @@
 
 <head>
   <title>Credits</title>
-  <link rel="icon" type="image/svg+xml" href="./icon2.svg">
+  <!--<switch tutorialHead>-->
+  <link rel="icon" type="image/svg+xml" href="../icon2.svg">
   <link href="../style.css" rel="stylesheet" type="text/css">
+  <!--</switch>-->
 </head>
 
-<body>
-  <div style="
-    background: black;
+<body style="
+    overflow-y: scroll;
+    overflow-x: hidden;
     background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
 ">
-    <h1 style="
+  <h1 style="
     position: absolute;
-    left: 20px;
+    left: 50%;
+    top: 20px;
+    width: fit-content;
+    margin: 0px 0 0 -113px;
 ">Credits</h1>
-    <ul style="
-      position: absolute;
-      top: 50px;
-  ">
+  <div style="
+        width: 94vw;
+        height: max-content;
+        padding-bottom: 10vh;
+        background: #eee;
+        border-radius: 56px;
+        position: absolute;
+        top: 75px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid rgb(51, 51, 51);
+    ">
+    <ul class="first">
       <li>
         <a href="./soundtracks/credits.html">Soundtracks</a>
       </li>
       <li>
-        <a href="https://fonts.adobe.com/fonts/junegull">Font</a>
+        <a href="https://fonts.adobe.com/fonts/junegull">Text Font</a>
+        <a href="https://fonts.google.com/specimen/Fira+Code">Code Font</a>
       </li>
       <li>
         <a>Textures</a>
@@ -38,7 +53,25 @@
       </li>
     </ul>
   </div>
+  <script>
+    //<switch tutorial>
+    var iconRoot = "../"
+    var tutorialRoot = "./"
+    var suffix = ".html"
+    //</switch>
+    let images = document.getElementsByTagName("img")
+    images[0].src = iconRoot + images[0].id
+    for (let i = 0; i < images.length; i++) {
+      if (images[i].classList[0] == "icon") {
+        images[i].src = iconRoot + images[i].id
+      }
+      else {
+        images[i].src = tutorialRoot + images[i].id
+      }
+    }
+  </script>
 
-  <body>
+
+</body>
 
 </html>

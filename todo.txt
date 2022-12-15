@@ -2,39 +2,84 @@
 / in progress
 | done
 
+idle tick algorithm:
+| copy board.cells into new.cells
+1 loop over all cells in culling.tick(1&2)
+  loop over each cell's connected neighbours using culling.cell.connectedFrom
+    set its new.cells value to OR of all inputs
+    set its new value to a pixel colour in render.data
+  if the bit changes then add it to new.tick and new.tick2
+set board.cells to new.cells
+set culling.tick(1&2) to new.tick(1&2)
+
+
+
+
 / interphase 1:
-  - change bit to a boolean
-  - put all variables into main objects
-  / idle tick optimisation
+  / music
+    - Fix Media Play Button
+    - Add Loading Icon
+    - Expandable Menu
+      - Volume control
+      - Seek
+      - Next And Previous
+      - See Current Track MetaData
+      - Don't Play This Track Again
+      - Track List
+  - fix homeDrift
+  - change connections to {upperType, lowerType, upperFlipped, lowerFlipped} rather than {upperType, lowerType, flipped, mixed}
+  - idle tick optimisation
   / tutorial/help
+  - merge canvas.onmousemove with canvas.ontouchmove
   / mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
   - settings (drift, quality...)
-  - efficient blueprints in better format than JSON (still support JSON downloads by ctrl clicking download for programmers to make cool stuff)
-  / title screen
-  / make ticks stop when there is nothing to simulate (need to increase efficiency)
-  - increase performance by making canvas.onmousemove only defined when a function button is held
+    - Gameplay
+      - Controls?
+      - Toggle Between Mobile Mode And PC Mode
+      - Scroll Sensitivity
+      - Drift Ammount
+    - Render
+      - Use the old engine (only useful for fancy styling in the future)
+      - Full Size PreRender (Should Fix The Apple IPad Rendering Issue)
+      - Grid Line Size (including off)
+      - Pre-Raster Modes (Off/Adaptive/Cache/Fixed)
+        - Pre-Raster Quality
+    - Tick
+      - Realtime Sync
+  / efficient blueprints in better format than JSON (keep the code for JSON format! will be required later)
+  - Phase Lock
+  / proper title screen (secretly keep original meme one and make it accessible somehow)
   
   done:
+    | add more comments
+    | sort everything into sections for their objects
+    | add loading screen
+    | make images rasterize as they load
+    | make the scale variable only update when scaling
+    | put all variables and functions into main objects
+    | make ticks stop when there is nothing to simulate
+    | change bit to a boolean
     | remove static cell property
     | render optimisation
     | tickrate control
-    | music
-
-
+    | replace rendering engine with putImageData version
 
 - phase 3:
-  - eggs benedict support
   - debug cell (type 3)
-  - lightning mode
+  - puzzles (as an interactive tutorial)
+  - eggs benedict support
   - accounts
   - tokens
   - cloud blueprints
   - blueprint sharing
   
-  premium only?:
-    - protected premium object
-    - pathfinding connect tool (with ribbon cable)
+  - premium
+    - download boards in JSON format
+    - connect tool (ribbon cables & pathfinding)
     - selections (copy, cut, paste, move, flip, rotate)
-    - save selections as components for use anywhere
-    - upload/share components
-    - blur when tps>fps
+      - save selections as components to import and use later
+      - upload, share and download components
+    - unlimited board size
+    - lightning mode (cells won't render but will run faster)
+    - fancy styles like cells fading or wiping from where the input came from
+    - undo/redo (only required because of powerful tools above)

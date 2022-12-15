@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" class="tutorial">
+      <rect xmlns="http://www.w3.org/2000/svg" width="171.215" height="171.215" rx="0" ry="0" transform="translate(13.8485 13.8485)" paint-order="markers stroke fill" fill="#eee" stroke="#333" stroke-width="27.697" stroke-linecap="round">
+        <animate attributeName="fill" values="#eee;#000;#000;#000;" dur="0.8s" repeatCount="indefinite" calcMode="discrete"></animate>
+      </rect>
+      <rect xmlns="http://www.w3.org/2000/svg" width="171.215" height="171.215" rx="0" ry="0" transform="translate(198.937 13.8484)" paint-order="markers stroke fill" stroke="#333" stroke-width="27.6971" stroke-linecap="round">
+        <animate xmlns="http://www.w3.org/2000/svg" attributeName="fill" values="#000;#eee;#000;#000;" dur="0.8s" repeatCount="indefinite" calcMode="discrete"></animate>
+      </rect>
+      <rect xmlns="http://www.w3.org/2000/svg" width="171.215" height="171.215" rx="0" ry="0" transform="translate(198.937 198.936)" paint-order="markers stroke fill" stroke="#333" stroke-width="27.6971" stroke-linecap="round">
+        <animate xmlns="http://www.w3.org/2000/svg" attributeName="fill" values="#000;#000;#eee;#000;" dur="0.8s" repeatCount="indefinite" calcMode="discrete"></animate>
+      </rect>
+      <rect xmlns="http://www.w3.org/2000/svg" width="171.215" height="171.215" rx="0" ry="0" transform="translate(13.8485 198.936)" paint-order="markers stroke fill" stroke="#333" stroke-width="27.6971" stroke-linecap="round">
+        <animate xmlns="http://www.w3.org/2000/svg" attributeName="fill" values="#000;#000;#000;#eee;" dur="0.8s" repeatCount="indefinite" calcMode="discrete"></animate>
+      </rect>
+      <path d="M146.37865,45.757693l71.98997,50.242313-71.98997,50.242304Z" fill="#eee" fill-rule="evenodd" stroke="#333" stroke-width="9.99731" stroke-linejoin="round"></path>
+      <path d="M45.758196,227.9948l50.24231-71.98998L146.24281,227.9948Z" fill="#eee" fill-rule="evenodd" stroke="#333" stroke-width="9.99731" stroke-linejoin="round"></path>
+      <path d="M237.75686,156.0052l50.24231,71.98998l50.24231-71.98998Z" fill="#eee" fill-rule="evenodd" stroke="#333" stroke-width="9.99731" stroke-linejoin="round"></path>
+      <path d="M218.36825,237.75686l-71.98997,50.24231l71.98997,50.24231Z" fill="#eee" fill-rule="evenodd" stroke="#333" stroke-width="9.99731" stroke-linejoin="round"></path>
+    </svg>

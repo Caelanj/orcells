@@ -1,0 +1,27 @@
+{
+  "short_name": "orcells",
+  "name": "Or Cells",
+  "icons": [
+    {
+      "src": "/icon2.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "id": "/",
+  "start_url": "/",
+  "background_color": "#EEEEEE",
+  "display": "fullscreen",
+  "scope": "/",
+  "theme_color": "#EEEEEE",
+  "shortcuts": [
+    {
+      "name": "Tutorial",
+      "short_name": "Tutorial",
+      "description": "Text Tutorial For Or Cells",
+      "url": "/tutorial/tutorial.html",
+      "icons": [{ "src": "/icon2.svg", "sizes": "192x192" }]
+    }
+  ],
+  "description": "A Complicated Simple Logic Simulator"
+}

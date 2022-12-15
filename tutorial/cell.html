@@ -1,0 +1,82 @@
+<html>
+
+<head>
+  <title>Cell</title>
+  <!--<switch tutorialHead>-->
+  <link rel="icon" type="image/svg+xml" href="../icon2.svg">
+  <link href="../style.css" rel="stylesheet" type="text/css">
+  <!--</switch>-->
+</head>
+
+<body style="
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
+">
+  <h1 class="heading">Cell</h1><div style="
+        width: 94vw;
+        height: max-content;
+        padding-bottom: 10vh;
+        background: #eee;
+        border-radius: 56px;
+        position: absolute;
+        top: 75px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid rgb(51, 51, 51);
+    ">
+    
+    
+    
+    <div style="
+    position: relative;
+    width: 96%;
+    height: 76px;
+    top: 16px;
+    left: 2%;
+">
+    <img id="icon1.svg" style="
+    width: 64px;
+    height: 64px;
+    position: relative;
+    border: 6px solid #333;
+    border-radius: 10px;
+    background-color: #333;
+" class="icon"><h1 style="
+    position: absolute;
+    top: 50%;
+    margin: 0;
+    left: 96px;
+    transform: translateY(-50%);
+"><a href="./phase1.html">Phase 1</a></h1>
+  </div>
+  <p class="first">A cell is a single square within a <a href="./board.html">board</a>, cells can be one of <a
+        href="./types.html">four types</a> and both act and look differently depending on type.</p>
+    <p>Generally cells have one or two bits which can be on or off and change based on their <a
+        href="./input.html">inputs</a> or through the user <a href="./action.html">action</a> of <a
+        href="./forcing.html">forcing</a>.</p>
+  </div>
+  <script>
+    //<switch tutorial>
+    var iconRoot = "../"
+    var tutorialRoot = "./"
+    var suffix = ".html"
+    //</switch>
+    let images = document.getElementsByTagName("img")
+    images[0].src = iconRoot + images[0].id
+    for (let i = 0; i < images.length; i++) {
+      if (images[i].classList[0]=="icon")
+      {
+        images[i].src = iconRoot + images[i].id
+      }
+      else
+      {
+        images[i].src = tutorialRoot + images[i].id
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>

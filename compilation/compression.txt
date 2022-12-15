@@ -10,3 +10,5 @@ https://csscompressor.com/
 
 html:
 https://www.textfixer.com/html/compress-html-compression.php
+  to pdf:
+  https://www.ilovepdf.com/html-to-pdf
