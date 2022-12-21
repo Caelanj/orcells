@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>Interface Tester</title>
+  </head>
+  <body>
+    <div>
+    <h3>Interface Status</h3>
+    <ul class="feature-status-list"><li><span>Touch: </span><span id="touchSpan"></span></li><li><span>Keyboard: </span><span id="keyboardSpan"></span></li><li><span>Mouse: </span><span id="mouseSpan"></span></li></ul>
+  </div>
+    <style>
+    .feature-green {
+      color: rgb(0, 128, 0);
+    }
+    .feature-yellow {
+    color: rgb(128, 128, 0);
+    }
+    .feature-red {
+    color: rgb(255, 0, 0);
+    }
+    </style>
+    <script>
+      navigator.keyboard.getLayoutMap().then((e)=>{
+      var touchSpan = document.getElementById("touchSpan")
+      var keyboardSpan = document.getElementById("keyboardSpan")
+      var mouseSpan = document.getElementById("mouseSpan")
+      var touchEnabled = ('ontouchstart' in window)
+      var keyboardEnabled = e.get("KeyW")=="w" //('keyboard' in navigator)
+      var mouseEnabled = ('onmousedown' in window)
+      touchSpan.textContent = touchEnabled ? "enabled" : "disabled"
+      touchSpan.classList.add(touchEnabled ? "feature-green" : "feature-red")
+      keyboardSpan.textContent = keyboardEnabled ? "enabled" : "disabled"
+      keyboardSpan.classList.add(keyboardEnabled ? "feature-green" : "feature-red")
+      mouseSpan.textContent = mouseEnabled ? "enabled" : "disabled"
+      mouseSpan.classList.add(mouseEnabled ? "feature-green" : "feature-red")
+     })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="144pt"
+   height="144pt"
+   viewBox="0 0 50.8 50.800001"
+   version="1.1"
+   id="svg11278"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="period.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview11280"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.1745121"
+     inkscape:cx="49.436377"
+     inkscape:cy="68.980991"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs11275" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#000000;stroke:#333333;stroke-width:7.07349;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+       id="rect898"
+       width="43.726528"
+       height="43.726509"
+       x="3.5367737"
+       y="3.5367737"
+       ry="6"
+       rx="5" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.6372px;font-family:Junegull;-inkscape-font-specification:Junegull;text-align:center;text-anchor:middle;fill:#eeeeee;stroke:#333333;stroke-width:5.99548;stroke-linecap:round;paint-order:markers stroke fill"
+       x="14.318158"
+       y="40.396042"
+       id="text11878"><tspan
+         sodipodi:role="line"
+         id="tspan11876"
+         x="14.318158"
+         y="40.396042"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Junegull;-inkscape-font-specification:Junegull;text-align:center;text-anchor:middle;stroke-width:5.99548">.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.8218px;font-family:Junegull;-inkscape-font-specification:Junegull;text-align:center;text-anchor:middle;fill:#eeeeee;stroke:#333333;stroke-width:5.44609;stroke-linecap:round;paint-order:markers stroke fill"
+       x="34.44524"
+       y="32.447918"
+       id="text11878-2"><tspan
+         sodipodi:role="line"
+         id="tspan11876-0"
+         x="34.44524"
+         y="32.447918"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Junegull;-inkscape-font-specification:Junegull;text-align:center;text-anchor:middle;stroke-width:5.44609">&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:50.8px;font-family:Junegull;-inkscape-font-specification:Junegull;text-align:center;text-anchor:middle;fill:#ff0000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:0.529167, 0.529167;paint-order:markers stroke fill"
+       x="28.958603"
+       y="14.600976"
+       id="text949"><tspan
+         sodipodi:role="line"
+         id="tspan947"
+         x="28.958603"
+         y="14.600976"
+         style="stroke-width:0.529167"></tspan></text>
+  </g>
+</svg>

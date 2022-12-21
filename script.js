@@ -19,7 +19,6 @@ var
     realtime: false, //if ticks should be run in realtime as fast as possible or on a clock
     rate: 100, //time to wait between each tick in miliseconds in consistent mode
     //better off changing above with tick.set(realtime, tickRate)
-    recovery: false, //if the program should try to recover if it can't keep up
     paused: false, //if the simulation should be paused by default
     sync: false //if to run ticks in sync with frames in realtime mode (way faster if false)
   },
@@ -32,13 +31,13 @@ var
   debug = { //Whether or not debug mode is enabled and the function to change that
     enabled: false //logs FPS and TPS to console
   },
-//</parameters>
-//Main Objects
-file = {}, //The file handling functions that save and load boards to and from files
-utility = {}, //useful functions like distance between 2 points and degrees to radians
-ui = {}, //The functions relating to changing the user interface
-culling = {}, //Extra data that helps increase the performance of things like rendering and performing ticks
-core = {} //The core functionality of Orcells
+  //</parameters>
+  //Main Objects
+  file = {}, //The file handling functions that save and load boards to and from files
+  utility = {}, //useful functions like distance between 2 points and degrees to radians
+  ui = {}, //The functions relating to changing the user interface
+  culling = {}, //Extra data that helps increase the performance of things like rendering and performing ticks
+  core = {} //The core functionality of Orcells
 //<mobile>
 core.mobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 //Detect if device is touch screen
 if (core.mobile) {
@@ -440,20 +439,23 @@ render.setCell = ((point, colour) => { //Set the value of a cell's colour in the
     render.changed = true; //Tell the render engine that changes have been made and need to be applied with render.apply()
   }
 })
-render.homeDrift = (_ => { //Make the camera drift over to the home position smoothly
-  if (render.homeCharge === 1) { //If we are right at the end of the transition then teleport to the destination
-    render.panZoom.x = core.mobile ? 0 : 464;
-    render.panZoom.y = core.mobile ? 0 : 140;
-    render.panZoom.scale = core.mobile ? 1 : 0.5;
-    render.homeCharge = 0;
-  }
-  if (render.homeCharge > 2) { //Smoothly pull toward the home position
-    let homeSpeed =
-      render.drift - Math.sin(utility.rad((render.drift - render.homeCharge) * (90 / render.drift))) * render.drift;
-    render.panZoom.x -= (render.panZoom.x - (core.mobile ? 0 : 464)) / homeSpeed;
-    render.panZoom.y -= (render.panZoom.y - (core.mobile ? 0 : 140)) / homeSpeed;
-    render.panZoom.scale -= (render.panZoom.scale - (core.mobile ? 1 : 0.5)) / homeSpeed;
-    render.homeCharge--;
+render.homeDrift = (_ => { //Make the camera drift over to the home position smoothly)
+  if (render.homeCharge != 0) {
+    if (render.homeCharge == 1) { //If we are right at the end of the transition then teleport to the destination
+      render.panZoom.x = core.mobile ? 0 : 464;
+      render.panZoom.y = core.mobile ? 0 : 140;
+      render.panZoom.scale = core.mobile ? 1 : 0.5;
+      render.homeCharge = 0;
+    }
+    if (render.homeCharge > 2) { //Smoothly pull toward the home position
+      let homeSpeed =
+        render.drift - Math.sin(utility.rad((render.drift - render.homeCharge) * (90 / render.drift))) * render.drift;
+      render.panZoom.x -= (render.panZoom.x - (core.mobile ? 0 : 464)) / homeSpeed;
+      render.panZoom.y -= (render.panZoom.y - (core.mobile ? 0 : 140)) / homeSpeed;
+      render.panZoom.scale -= (render.panZoom.scale - (core.mobile ? 1 : 0.5)) / homeSpeed;
+      render.homeCharge--;
+    }
+    render.size = 1 / render.panZoom.scale;
   }
 })
 render.home = (_ => {
@@ -653,7 +655,6 @@ tick.nextAt;
 tick.ticks = 0;
 tick.drift = 0;
 tick.idle = true;
-tick.driftAscention = Array(20).fill(0);
 tick.lastDrift = 0;
 tick.newGrid;
 tick.frames = 0;
@@ -699,8 +700,7 @@ tick.set = ((setRealTime, setTickRate) => { //Set the tickrate
   tick.rate = setTickRate;
   if (tick.realtime && !setRealTime) {
     tick.realtime = false;
-    tick.tick();
-  } else {
+  } else if (!tick.realtime && setRealTime) {
     tick.realtime = setRealTime;
   }
 })
@@ -709,7 +709,175 @@ tick.tick = ((auto = true) => { //Perform a tick
     lastTick = Date.now();
     tick.newGrid = JSON.parse(JSON.stringify(board.cells));
     culling.tick.forEach((item) => {
-      tick.innerTick1Old(item);
+      let x2 = item[0];
+      let y2 = item[1];
+      let bit = false;
+      //From Left
+      if (x2 > 0) {
+        switch (board.cells[x2 - 1][y2].type) {
+          case 1:
+            bit ||=
+              (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
+                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                board.cells[x2 - 1][y2].bit) ||
+              (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
+                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                !board.cells[x2 - 1][y2].bit);
+            bit ||=
+              (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
+                board.connections.horizontal[x2 - 1][y2].flipped ==
+                board.connections.horizontal[x2 - 1][y2].mixed &&
+                board.cells[x2 - 1][y2].bit) ||
+              (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
+                board.connections.horizontal[x2 - 1][y2].flipped ==
+                board.connections.horizontal[x2 - 1][y2].mixed &&
+                !board.cells[x2 - 1][y2].bit);
+            break;
+          case 2:
+            bit ||=
+              (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
+                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                board.cells[x2 - 1][y2].bit.upperBit) ||
+              (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
+                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                !board.cells[x2 - 1][y2].bit.upperBit);
+            bit ||=
+              (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
+                board.connections.horizontal[x2 - 1][y2].flipped ==
+                board.connections.horizontal[x2 - 1][y2].mixed &&
+                board.cells[x2 - 1][y2].bit.lowerBit) ||
+              (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
+                board.connections.horizontal[x2 - 1][y2].flipped ==
+                board.connections.horizontal[x2 - 1][y2].mixed &&
+                !board.cells[x2 - 1][y2].bit.lowerBit);
+            break;
+        }
+      }
+      //From Right
+      if (x2 < board.width - 1) {
+        switch (board.cells[x2 + 1][y2].type) {
+          case 1:
+            bit ||=
+              (board.connections.horizontal[x2][y2].type.upperType == 1 &&
+                board.connections.horizontal[x2][y2].flipped &&
+                board.cells[x2 + 1][y2].bit) ||
+              (board.connections.horizontal[x2][y2].type.upperType == 2 &&
+                board.connections.horizontal[x2][y2].flipped &&
+                !board.cells[x2 + 1][y2].bit);
+            bit ||=
+              (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
+                board.connections.horizontal[x2][y2].flipped !=
+                board.connections.horizontal[x2][y2].mixed &&
+                board.cells[x2 + 1][y2].bit) ||
+              (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
+                board.connections.horizontal[x2][y2].flipped !=
+                board.connections.horizontal[x2][y2].mixed &&
+                !board.cells[x2 + 1][y2].bit);
+            break;
+          case 2:
+            bit ||=
+              (board.connections.horizontal[x2][y2].type.upperType == 1 &&
+                board.connections.horizontal[x2][y2].flipped &&
+                board.cells[x2 + 1][y2].bit.upperBit) ||
+              (board.connections.horizontal[x2][y2].type.upperType == 2 &&
+                board.connections.horizontal[x2][y2].flipped &&
+                !board.cells[x2 + 1][y2].bit.upperBit);
+            bit ||=
+              (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
+                board.connections.horizontal[x2][y2].flipped !=
+                board.connections.horizontal[x2][y2].mixed &&
+                board.cells[x2 + 1][y2].bit.lowerBit) ||
+              (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
+                board.connections.horizontal[x2][y2].flipped !=
+                board.connections.horizontal[x2][y2].mixed &&
+                !board.cells[x2 + 1][y2].bit.lowerBit);
+            break;
+        }
+      }
+      //From Up
+      if (y2 > 0) {
+        switch (board.cells[x2][y2 - 1].type) {
+          case 1:
+            bit ||=
+              (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
+                !board.connections.vertical[x2][y2 - 1].flipped &&
+                board.cells[x2][y2 - 1].bit) ||
+              (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
+                !board.connections.vertical[x2][y2 - 1].flipped &&
+                !board.cells[x2][y2 - 1].bit);
+            bit ||=
+              (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
+                board.connections.vertical[x2][y2 - 1].flipped ==
+                board.connections.vertical[x2][y2 - 1].mixed &&
+                board.cells[x2][y2 - 1].bit) ||
+              (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
+                board.connections.vertical[x2][y2 - 1].flipped ==
+                board.connections.vertical[x2][y2 - 1].mixed &&
+                !board.cells[x2][y2 - 1].bit);
+            break;
+          case 2:
+            bit ||=
+              (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
+                !board.connections.vertical[x2][y2 - 1].flipped &&
+                board.cells[x2][y2 - 1].bit.upperBit) ||
+              (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
+                !board.connections.vertical[x2][y2 - 1].flipped &&
+                !board.cells[x2][y2 - 1].bit.upperBit);
+            bit ||=
+              (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
+                board.connections.vertical[x2][y2 - 1].flipped ==
+                board.connections.vertical[x2][y2 - 1].mixed &&
+                board.cells[x2][y2 - 1].bit.lowerBit) ||
+              (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
+                board.connections.vertical[x2][y2 - 1].flipped ==
+                board.connections.vertical[x2][y2 - 1].mixed &&
+                !board.cells[x2][y2 - 1].bit.lowerBit);
+            break;
+        }
+      }
+      //From Down
+      if (y2 < board.height - 1) {
+        switch (board.cells[x2][y2 + 1].type) {
+          case 1:
+            bit ||=
+              (board.connections.vertical[x2][y2].type.upperType == 1 &&
+                board.connections.vertical[x2][y2].flipped &&
+                board.cells[x2][y2 + 1].bit) ||
+              (board.connections.vertical[x2][y2].type.upperType == 2 &&
+                board.connections.vertical[x2][y2].flipped &&
+                !board.cells[x2][y2 + 1].bit);
+            bit ||=
+              (board.connections.vertical[x2][y2].type.lowerType == 1 &&
+                board.connections.vertical[x2][y2].flipped !=
+                board.connections.vertical[x2][y2].mixed &&
+                board.cells[x2][y2 + 1].bit) ||
+              (board.connections.vertical[x2][y2].type.lowerType == 2 &&
+                board.connections.vertical[x2][y2].flipped !=
+                board.connections.vertical[x2][y2].mixed &&
+                !board.cells[x2][y2 + 1].bit);
+            break;
+          case 2:
+            bit ||=
+              (board.connections.vertical[x2][y2].type.upperType == 1 &&
+                board.connections.vertical[x2][y2].flipped &&
+                board.cells[x2][y2 + 1].bit.upperBit) ||
+              (board.connections.vertical[x2][y2].type.upperType == 2 &&
+                board.connections.vertical[x2][y2].flipped &&
+                !board.cells[x2][y2 + 1].bit.upperBit);
+            bit ||=
+              (board.connections.vertical[x2][y2].type.lowerType == 1 &&
+                board.connections.vertical[x2][y2].flipped !=
+                board.connections.vertical[x2][y2].mixed &&
+                board.cells[x2][y2 + 1].bit.lowerBit) ||
+              (board.connections.vertical[x2][y2].type.lowerType == 2 &&
+                board.connections.vertical[x2][y2].flipped !=
+                board.connections.vertical[x2][y2].mixed &&
+                !board.cells[x2][y2 + 1].bit.lowerBit);
+            break;
+        }
+      }
+      tick.newGrid[x2][y2].bit = bit;
+      render.setCell([x2, y2], render.getColour(bit, 1))
     });
     culling.tick2.forEach((item) => {
       if (!auto || !tick.paused) {
@@ -964,7 +1132,7 @@ tick.tick = ((auto = true) => { //Perform a tick
       if (tick.drift > tick.rate) {
         let ticksBehind = Math.floor(tick.drift / tick.rate);
         document.getElementById("behindDiv").style.visibility = "inherit";
-        if (!ui.helpMenu) {
+        if (!ui.open.help) {
           document.getElementById("behindSkip").style.pointerEvents = "all";
         }
         document.getElementById("behind").textContent =
@@ -979,7 +1147,7 @@ tick.tick = ((auto = true) => { //Perform a tick
       if (tick.drift < -tick.rate) {
         let ticksAhead = Math.floor(tick.drift / tick.rate) * -1;
         document.getElementById("aheadDiv").style.visibility = "inherit";
-        if (!ui.helpMenu) {
+        if (!ui.open.help) {
           document.getElementById("aheadSkip").style.pointerEvents = "all";
         }
         document.getElementById("ahead").textContent =
@@ -992,22 +1160,6 @@ tick.tick = ((auto = true) => { //Perform a tick
         document.getElementById("aheadSkip").style.pointerEvents = "none";
       }
       tick.ticks++;
-      if (tick.recovery) {
-        let count = tick.driftAscention.filter((value) => value === true).length;
-        console.log("count: " + count, "render.drift: " + tick.drift);
-        if (count >= 8 && tick.drift > 10 * tick.rate) {
-          document.getElementById("unstable").style.visibility = "inherit";
-          console.warn("unstable, rasing tickrate to: " + tick.rate);
-          tick.set(false, tick.rate * 2);
-        } else {
-          document.getElementById("unstable").style.visibility = "hidden";
-        }
-        tick.driftAscention.unshift(
-          Math.floor(tick.drift / tick.rate) > Math.floor(tick.lastDrift / tick.rate)
-        );
-        tick.driftAscention.pop();
-        tick.lastDrift = tick.drift;
-      }
       setTimeout(tick.tick, tick.nextAt - epoch);
       //</timing>
     }
@@ -1015,180 +1167,6 @@ tick.tick = ((auto = true) => { //Perform a tick
       setTimeout(tick.tick, 0)
     }
   }
-})
-tick.innerTick1Old = ((item) => { //Old type 1 tick
-  let x2 = item[0];
-  let y2 = item[1];
-  let bit = false;
-  //From Left
-  if (x2 > 0) {
-    switch (board.cells[x2 - 1][y2].type) {
-      case 1:
-        bit ||=
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit) ||
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            !board.cells[x2 - 1][y2].bit);
-        bit ||=
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit) ||
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            !board.cells[x2 - 1][y2].bit);
-        break;
-      case 2:
-        bit ||=
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 1 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            board.cells[x2 - 1][y2].bit.upperBit) ||
-          (board.connections.horizontal[x2 - 1][y2].type.upperType == 2 &&
-            !board.connections.horizontal[x2 - 1][y2].flipped &&
-            !board.cells[x2 - 1][y2].bit.upperBit);
-        bit ||=
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            board.cells[x2 - 1][y2].bit.lowerBit) ||
-          (board.connections.horizontal[x2 - 1][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2 - 1][y2].flipped ==
-            board.connections.horizontal[x2 - 1][y2].mixed &&
-            !board.cells[x2 - 1][y2].bit.lowerBit);
-        break;
-    }
-  }
-  //From Right
-  if (x2 < board.width - 1) {
-    switch (board.cells[x2 + 1][y2].type) {
-      case 1:
-        bit ||=
-          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit) ||
-          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            !board.cells[x2 + 1][y2].bit);
-        bit ||=
-          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit) ||
-          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            !board.cells[x2 + 1][y2].bit);
-        break;
-      case 2:
-        bit ||=
-          (board.connections.horizontal[x2][y2].type.upperType == 1 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            board.cells[x2 + 1][y2].bit.upperBit) ||
-          (board.connections.horizontal[x2][y2].type.upperType == 2 &&
-            board.connections.horizontal[x2][y2].flipped &&
-            !board.cells[x2 + 1][y2].bit.upperBit);
-        bit ||=
-          (board.connections.horizontal[x2][y2].type.lowerType == 1 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            board.cells[x2 + 1][y2].bit.lowerBit) ||
-          (board.connections.horizontal[x2][y2].type.lowerType == 2 &&
-            board.connections.horizontal[x2][y2].flipped !=
-            board.connections.horizontal[x2][y2].mixed &&
-            !board.cells[x2 + 1][y2].bit.lowerBit);
-        break;
-    }
-  }
-  //From Up
-  if (y2 > 0) {
-    switch (board.cells[x2][y2 - 1].type) {
-      case 1:
-        bit ||=
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit) ||
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            !board.cells[x2][y2 - 1].bit);
-        bit ||=
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit) ||
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            !board.cells[x2][y2 - 1].bit);
-        break;
-      case 2:
-        bit ||=
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 1 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            board.cells[x2][y2 - 1].bit.upperBit) ||
-          (board.connections.vertical[x2][y2 - 1].type.upperType == 2 &&
-            !board.connections.vertical[x2][y2 - 1].flipped &&
-            !board.cells[x2][y2 - 1].bit.upperBit);
-        bit ||=
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            board.cells[x2][y2 - 1].bit.lowerBit) ||
-          (board.connections.vertical[x2][y2 - 1].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2 - 1].flipped ==
-            board.connections.vertical[x2][y2 - 1].mixed &&
-            !board.cells[x2][y2 - 1].bit.lowerBit);
-        break;
-    }
-  }
-  //From Down
-  if (y2 < board.height - 1) {
-    switch (board.cells[x2][y2 + 1].type) {
-      case 1:
-        bit ||=
-          (board.connections.vertical[x2][y2].type.upperType == 1 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit) ||
-          (board.connections.vertical[x2][y2].type.upperType == 2 &&
-            board.connections.vertical[x2][y2].flipped &&
-            !board.cells[x2][y2 + 1].bit);
-        bit ||=
-          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit) ||
-          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            !board.cells[x2][y2 + 1].bit);
-        break;
-      case 2:
-        bit ||=
-          (board.connections.vertical[x2][y2].type.upperType == 1 &&
-            board.connections.vertical[x2][y2].flipped &&
-            board.cells[x2][y2 + 1].bit.upperBit) ||
-          (board.connections.vertical[x2][y2].type.upperType == 2 &&
-            board.connections.vertical[x2][y2].flipped &&
-            !board.cells[x2][y2 + 1].bit.upperBit);
-        bit ||=
-          (board.connections.vertical[x2][y2].type.lowerType == 1 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            board.cells[x2][y2 + 1].bit.lowerBit) ||
-          (board.connections.vertical[x2][y2].type.lowerType == 2 &&
-            board.connections.vertical[x2][y2].flipped !=
-            board.connections.vertical[x2][y2].mixed &&
-            !board.cells[x2][y2 + 1].bit.lowerBit);
-        break;
-    }
-  }
-  tick.newGrid[x2][y2].bit = bit;
-  render.setCell([x2, y2], render.getColour(bit, 1))
-})
-tick.innerTick1New = ((item) => { //New Type 1 tick
-
 })
 if (!tick.realtime) {
   tick.tick();
@@ -1212,32 +1190,19 @@ if (record.enabled) {
   })
 }
 //Music Object Initialization
-// music.soundtracks = [
-//   "https://drive.google.com/uc?export=download&id=1SEhtmPk-VuIYk9EzTfnretk62DzIWK3k",
-//   "https://drive.google.com/uc?export=download&id=1In6dTH9f4jT5QjMzqmMreAm5oZ6pLdbf",
-//   "https://drive.google.com/uc?export=download&id=1_UASirXo1GB1BUV24Jk4MYz71fQW0kXQ",
-//   "https://drive.google.com/uc?export=download&id=1UGV2Mvj0816ss_qOy495CTnIhOIoNl8-",
-//   "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
-//   "https://drive.google.com/uc?export=download&id=1_lrAyHc9RkPCoZ03rPdLpX8PLJTMdf1c",
-//   "https://drive.google.com/uc?export=download&id=1cq0KR7B_3Dbku3668iSCtE5Q-Fbdnsmd",
-//   "https://drive.google.com/uc?export=download&id=1NACj9P4KPASmT9mDBvuuJ4UcnH7IYizr",
-//   "https://drive.google.com/uc?export=download&id=1FIWCweWhOkJgBjq8xhbs9RERo9fby_YK",
-//   "https://drive.google.com/uc?export=download&id=1n3AwpuPk72-bxCENutLuGhjc5tyg2ukF",
-//   "https://drive.google.com/uc?export=download&id=16zToeg8eqVK9nciCMdR0rzDzX5pP6hEw",
-// ]
 //<switch soundtracks>
 music.soundtracks = [
- "https://t4.bcbits.com/stream/f4118aa1b5e5371868608f71bce5b6c0/mp3-128/2605058970?p=0&ts=1671163356&t=d2ed9e329f94945bd07f42c5152f993f0147979b&token=1671163356_a2feef5350d9e88f3c5972e267bdd84f4302b2f1",
- "https://t4.bcbits.com/stream/5a2576ffd1f675f5f88c1b7fa190f847/mp3-128/452949034?p=0&ts=1671163453&t=2b3b4164e8fd60b7f8ba23f700aee051e864e9d4&token=1671163453_6677c500e5e0fa86a210db2284189540080f9157",
- "https://t4.bcbits.com/stream/b80811fe5797db953cde4233dcd94b0d/mp3-128/2660315560?p=0&ts=1671163574&t=5e0b4ab3ba7e44f366935d9b0a2dc4f4754c0dfb&token=1671163574_d300fa7ba016b2fdc092611b4444ddfe47bfc7fa",
- "https://t4.bcbits.com/stream/caeacba77ad233bb664325c79a984d62/mp3-128/1377240193?p=0&ts=1671163705&t=68ef023d3c5d2aa0764db7885cd9e0731415bfdd&token=1671163705_a29719d308d57fb5c2b760d70936c1c2ea777ca6",
- "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
- "https://t4.bcbits.com/stream/51a970d315f75bbe9d7da166dc9b5a98/mp3-128/3708318485?p=0&ts=1671163859&t=4e3f373f10297ff18cb4172a4de6eae106738be0&token=1671163859_2a5cc14c272a3df2c8b4865ff76171b8bc54d20d",
- "https://t4.bcbits.com/stream/48646c2d9359292de7a6bca3aafcb5bc/mp3-128/2703815867?p=0&ts=1671163886&t=e64c473b6e862aace36c9556b1cee77ba5da48dc&token=1671163886_1fba40ccb61fc650003d699190c41e11b9713c56",
- "https://t4.bcbits.com/stream/b436945049b78ad00407a7b9d1a9ea0a/mp3-128/1492957428?p=0&ts=1671164536&t=0a127825dc4f292673e2a475f6f77781ea6a2b74&token=1671164536_b5ed0f89930628ed1bf3bf1ee3f55adf719c607d",
- "https://t4.bcbits.com/stream/5ada1f8db1b0975e20c6f102410199cf/mp3-128/1536389329?p=0&ts=1671166476&t=5626fcc141229fe7f8573bc1b3a66ead10099e4f&token=1671166476_060c894cc2641e708d12ef079efc3fa34f363619",
- "https://t4.bcbits.com/stream/3cfc091e838ffcebd4e9bb6df61a22b2/mp3-128/3365989152?p=0&ts=1671166659&t=4049b917d76ebe6ad80dcf71bd1814fc893eedc0&token=1671166659_c14cc389ebd5d435961c77a5db7187b0c29370ea",
- "https://t4.bcbits.com/stream/0d742e1249de2336944d12431f94e042/mp3-128/3442035689?p=0&ts=1671166705&t=24244dc91fd47411c73fd97455fa09c2fcb27a44&token=1671166705_6a3f618cd8b166ab691fd96bc23630417c2b5e14"
+  "https://drive.google.com/uc?export=download&id=1SEhtmPk-VuIYk9EzTfnretk62DzIWK3k",
+  "https://drive.google.com/uc?export=download&id=1In6dTH9f4jT5QjMzqmMreAm5oZ6pLdbf",
+  "https://drive.google.com/uc?export=download&id=1_UASirXo1GB1BUV24Jk4MYz71fQW0kXQ",
+  "https://drive.google.com/uc?export=download&id=1UGV2Mvj0816ss_qOy495CTnIhOIoNl8-",
+  "https://drive.google.com/uc?export=download&id=1HTc1Znubb_v1pFTyvsaVC1rdfHSBr2rn",
+  "https://drive.google.com/uc?export=download&id=1_lrAyHc9RkPCoZ03rPdLpX8PLJTMdf1c",
+  "https://drive.google.com/uc?export=download&id=1cq0KR7B_3Dbku3668iSCtE5Q-Fbdnsmd",
+  "https://drive.google.com/uc?export=download&id=1NACj9P4KPASmT9mDBvuuJ4UcnH7IYizr",
+  "https://drive.google.com/uc?export=download&id=1FIWCweWhOkJgBjq8xhbs9RERo9fby_YK",
+  "https://drive.google.com/uc?export=download&id=1n3AwpuPk72-bxCENutLuGhjc5tyg2ukF",
+  "https://drive.google.com/uc?export=download&id=16zToeg8eqVK9nciCMdR0rzDzX5pP6hEw",
 ]
 //</switch>
 music.soundtrackMeta = [
@@ -1258,7 +1223,6 @@ music.mute = ((setMute = null) => { //Mute the music
     setMute = setMute.action == "pause"
   }
   if (!music.muted && music.audio.paused) {
-    console.log("start music")
     music.audio.play();
   } else if ((!music.muted && setMute == null) || (setMute == true && setMute != null)) {
     music.audio.pause();
@@ -1338,7 +1302,7 @@ music.audio.onplay = (() => { //Remove the cross on the sound icon when the song
 })
 //Debug Object Initialization
 debug.interval = -1
-debug.setEnabled = ((state) => { //Enable or disable debug mode
+debug.setEnabled = ((state = true) => { //Enable or disable debug mode
   debug.enabled = state
   if (state) {
     debug.interval = setInterval((_ => { //If enabling, set the framerate log interval
@@ -1656,17 +1620,54 @@ utility.decimalToBinary = ((num) => {
 })
 //UI Object Initialization
 ui = {
-  helpMenu: false,
+  open: {help: false},
+  blur: 0,
   quantities: document.getElementById("tickRateControl"),
+  isOpen: (_=>{
+    return Object.values(ui.open).some(x => x)
+  }),
+  close: (_=>{
+    if (ui.isOpen()) {
+      ui.help()
+    }
+  }),
+  blurOn: ((blur) => { //Blur the background for menus
+    if (ui.blur < 8) {
+      ui.blur++
+      document.getElementById("gameDiv").style.filter = "blur(" + ui.blur + "px)";
+      if (ui.isOpen())
+      {
+        setTimeout(ui.blurOn, 25)
+      }
+      else
+      {
+        setTimeout(ui.blurOff, 25)
+      }
+    }
+  }),
+  blurOff: ((blur) => { //Unblur the background for menus
+    if (ui.blur > 0) {
+      ui.blur--
+      document.getElementById("gameDiv").style.filter = "blur(" + ui.blur + "px)";
+      if (ui.isOpen())
+      {
+        setTimeout(ui.blurOn, 25)
+      }
+      else
+      {
+        setTimeout(ui.blurOff, 25)
+      }
+    }
+  }),
   help: (_ => { //Show the help menu
-    if (ui.helpMenu) {
-      ui.helpMenu = false;
-      document.getElementById("gameDiv").style.filter = "blur(0px)";
+    if (ui.open.help) {
+      ui.open.help = false;
+      ui.blurOff();
       document.getElementById("gameDiv").style.pointerEvents = "all";
       document.getElementById("help").style.visibility = "hidden";
     } else {
-      ui.helpMenu = true;
-      document.getElementById("gameDiv").style.filter = "blur(8px)";
+      ui.open.help = true;
+      ui.blurOn();
       document.getElementById("gameDiv").style.pointerEvents = "none";
       document.getElementById("help").style.visibility = "visible";
     }
@@ -1710,21 +1711,24 @@ ui = {
   }),
   changeQuantity: ((change) => { //Change the value shown in the tickrate control
     if (!tick.realtime) {
-      // Get current value
+      //Get current value
       let quantity = Number(ui.quantities.children[2].value);
 
-      // Ensure quantity is a valid number
+      //Ensure quantity is a valid number
       if (isNaN(quantity)) quantity = 1;
 
-      // Change quantity
+      //Change quantity
       quantity += change;
 
-      // Ensure quantity is always a number
+      //Ensure quantity is always a number
       quantity = Math.max(quantity, 1);
 
-      // Output number
+      //Output number
       ui.quantities.children[2].value = quantity;
 
+      //Focus the control
+      ui.quantities.children[2].focus();
+      
       tick.realtimeCheck();
     }
   })
@@ -2195,10 +2199,15 @@ core.GridToWorld = ((point) => { //Converts grid cords to world coords
 //<keyboard>
 document.addEventListener("keydown", (e) => { //Detect key-down events
   switch (String(e.key)) { //Detect which key was pressed
-    case "Enter": //Update inputs
+    case "Enter":
       e.preventDefault();
       if (e.target.name == "quantity") {
+        ui.quantities.children[2].blur();
         tick.realtimeCheck()
+      }
+      if (e.target.type == "button")
+      {
+        e.target.click();
       }
       break;
     case "Control": //Grabs the board for movement
@@ -2211,6 +2220,9 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
       startCell = core.lastCell;
       core.del = true;
       break;
+    case "Home": //Returns home
+      render.home()
+      break;
     case " ": //Pauses/Plays the simulation
       e.preventDefault();
       if (tick.paused) {
@@ -2219,11 +2231,21 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
         tick.pause();
       }
       break;
-    case ".": //Runs 1 tick
+    case "\\": //Focuses the tick rate control
+      ui.quantities.children[2].focus();
+      break;
+    case ".": //Performs 1 tick
+    case ">":
       tick.tick(false);
       break;
     case "/": //Toggles realtime mode
       tick.toggleRealtime();
+      break;
+    case "?": //Opens the help menu
+      ui.help();
+      break;
+    case "Escape": //Close any open menu
+      ui.close();
       break;
     case "m": //Mutes the music
     case "M":

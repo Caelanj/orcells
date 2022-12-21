@@ -2,6 +2,12 @@
 / in progress
 | done
 
+1 easy, take at most 20 mins
+2 medium, take at most an hour
+3 hard, could take up to day of work
+4 very hard, could take up to a week of work
+5 EXTREMELY HARD, could take months of work
+
 idle tick algorithm:
 | copy board.cells into new.cells
 1 loop over all cells in culling.tick(1&2)
@@ -15,42 +21,41 @@ set culling.tick(1&2) to new.tick(1&2)
 
 
 
-/ interphase 1:
-  / music
-    - Fix Media Play Button
-    - Add Loading Icon
-    - Expandable Menu
-      - Volume control
-      - Seek
-      - Next And Previous
-      - See Current Track MetaData
-      - Don't Play This Track Again
-      - Track List
-  - fix homeDrift
-  - change connections to {upperType, lowerType, upperFlipped, lowerFlipped} rather than {upperType, lowerType, flipped, mixed}
-  - idle tick optimisation
-  / tutorial/help
-  - merge canvas.onmousemove with canvas.ontouchmove
-  / mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
-  - settings (drift, quality...)
-    - Gameplay
-      - Controls?
-      - Toggle Between Mobile Mode And PC Mode
-      - Scroll Sensitivity
-      - Drift Ammount
-    - Render
-      - Use the old engine (only useful for fancy styling in the future)
-      - Full Size PreRender (Should Fix The Apple IPad Rendering Issue)
-      - Grid Line Size (including off)
-      - Pre-Raster Modes (Off/Adaptive/Cache/Fixed)
-        - Pre-Raster Quality
-    - Tick
-      - Realtime Sync
-  / efficient blueprints in better format than JSON (keep the code for JSON format! will be required later)
-  - Phase Lock
-  / proper title screen (secretly keep original meme one and make it accessible somehow)
+/5 interphase 1:
+  -2 change connections to {upperType, lowerType, upperFlipped, lowerFlipped} rather than {upperType, lowerType, flipped, mixed}
+  -3 stop rendering when there is no movement and idle/paused
+  -2 merge canvas.onmousemove with canvas.ontouchmove
+  -4 proper title screen (secretly keep original meme one and make it accessible somehow)
+  -4 puzzles
+  -4 settings (drift, quality...)
+    -2 gameplay
+      -1 switch between PC and mobile mode
+      -1 scroll sensitivity
+      -1 drift ammount
+      -2 phase Lock/Detect Phase
+    -3 render
+      -2 use the old engine (only useful for fancy styling in the future)
+      -2 full size preRender (Should Fix The Apple IPad Rendering Issue)
+      -1 grid line size (including off)
+      -2 preRaster modes (Off/Adaptive/Fixed)
+        -1 preRaster Quality
+    -1 tick
+      -1 realtime sync
+        -1 show control
+  /4 efficient blueprints in better format than JSON (keep the code for JSON format! will be required later)
+  /4 mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
   
   done:
+    | text tutorial and documentation
+      | add X to help menu
+      | fade blur
+      | make image sizes absolute
+      | remove ./ from hyperlink href
+      | home page to link to all others
+    | fix homeDrift
+    | Delete Recovery Mode
+    | Switch back to using the camel case "OrCells" rather than "Orcells"
+    | music basics
     | add more comments
     | sort everything into sections for their objects
     | add loading screen
@@ -64,12 +69,28 @@ set culling.tick(1&2) to new.tick(1&2)
     | tickrate control
     | replace rendering engine with putImageData version
 
-- phase 3:
-  - debug cell (type 3)
-  - puzzles (as an interactive tutorial)
+-? phase 3:
+  -4 debug cell (type 3)
+
+- interphase 2:
+  -3 idle tick optimisation
+  - interactive tutorial
+  - phase 1&2 video tutorial
+  - advanced music
+    - find better more rounded icon
+    - fix media play button
+    - add loading icon
+    - expandable menu
+      - volume control
+      - seek
+      - next and previous
+      - see current track metadata
+      - don't play this track again
+      - track list
   - eggs benedict support
   - accounts
-  - tokens
+    - sign in with google
+    - sync Settings
   - cloud blueprints
   - blueprint sharing
   

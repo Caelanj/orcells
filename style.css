@@ -57,7 +57,7 @@ html, body {
     font-family: junegull;
     cursor: text;
     position: relative;
-    left: 2%;
+    left: 30px;
     top: 80px;
     width: 96%;
     font-size: 1.5em;
@@ -66,35 +66,49 @@ html, body {
   a {
     text-decoration: none;
   }
-  ul {
+  ul, ol {
     font-family: junegull;
     cursor: text;
     position: relative;
-    left: 2%;
+    left: 30px;
     top: 80px;
     width: 96%;
     font-size: 1.5em;
     font-weight: bold;
   }
-  ul ul {
+  ul ul, ol ol, ul ol, ol ul {
     top: 0;
     font-size: inherit;
   }
+  ol li {
+    width: fit-content;
+  } 
   img {
     user-select: none;
   }
+  .link {
+    color: -webkit-link;
+    cursor: pointer;
+  }
   .textButton {
     border: none;
-    background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
+    background: repeating-linear-gradient(45deg, #eee, #eee 10px, #888 10px, #888 15px);
     justify-content: center;
     align-items: center;
     font-family: 'junegull';
     user-select: none;
-    filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
+    filter: drop-shadow(-1px -1px 0px #fff) drop-shadow(2px -1px 0px #888) drop-shadow(2px 2px 0px #666) drop-shadow(-1px 2px 0px #fff);
     border-radius: 25px;
   }
   .textButton:hover {
     background: repeating-linear-gradient(45deg, #ACCEF7, #ACCEF7 10px, #458 10px, #458 15px);
+  }
+  .textButton:disabled {
+    background: repeating-linear-gradient(45deg, #888, #888 10px, #eee 10px, #eee 15px);
+    cursor: default !important;
+  }
+  .textButton:disabled a {
+    color: #333;
   }
   input[type="radio"] {
     -ms-transform: scale(2); /* IE 9 */
@@ -109,11 +123,73 @@ html, body {
     height: 100%;
     background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
   }
-  .tutorial {
-    width: 14%;
+  .tutorialDiv img:not(.keyIcon, .icon img) {
+    width: 200px;
     position: relative;
-    left: 2%;
+    left: 30px;
     top: 80px;
+  }
+  .tutorialBody {
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+  .tutorialDiv {
+    width: 94vw;
+    height: max-content;
+    padding-bottom: 10vh;
+    background: #eee;
+    border-radius: 56px;
+    position: absolute;
+    top: 75px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid rgb(51, 51, 51);
+  }
+  .tutorialDiv h1 {
+    position: relative;
+    left: 30px;
+    top: 80px;
+  }
+  .iconOffset {
+    top: 108px !important;
+  }
+  .icon {
+    position: relative;
+    width: 96%;
+    height: 76px;
+    top: 16px;
+    left: 30px;
+  }
+  .top {
+    width: 256px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  .keyIcon {
+    width: 1.5em;
+    height: 1.5em;
+  }
+  .later {
+    top: 80px !important;
+  }
+  .icon img {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    border: 6px solid #333;
+    border-radius: 10px;
+    background-color: #333;
+  }
+  .clear {
+    background-color: #0000 !important;
+  }
+  .icon h1 {
+    position: absolute;
+    top: 50%;
+    margin: 0;
+    left: 96px;
+    transform: translateY(-50%);
+    white-space: nowrap;
   }
   .first {
     margin-top: -48px;

@@ -6,7 +6,7 @@
    width="288pt"
    height="144pt"
    version="1.0"
-   sodipodi:docname="not.svg"
+   sodipodi:docname="buffer.svg"
    inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -27,8 +27,8 @@
      inkscape:document-units="pt"
      showgrid="false"
      inkscape:zoom="1.5891488"
-     inkscape:cx="122.39256"
-     inkscape:cy="71.736515"
+     inkscape:cx="20.4512"
+     inkscape:cy="-78.029194"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -57,27 +57,16 @@
      y="13.605376"
      ry="3.7709387e-17" />
   <rect
-     style="fill:#eeeeee;fill-opacity:1;stroke:#333333;stroke-width:27.2109;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+     style="fill:#000000;fill-opacity:1;stroke:#333333;stroke-width:27.2109;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
      id="rect898-7"
      width="171.70076"
      height="164.78929"
      x="198.69379"
      y="13.605356"
      ry="3.7709387e-17" />
-  <g
-     id="g18503"
-     transform="matrix(1.4644002,0,0,1.5083815,-26.462716,-48.804621)"
-     style="stroke-width:10.2999;stroke-dasharray:none">
-    <path
-       style="fill:#eeeeee;fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:6.72663;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="M 117.9791,62.691245 167.13913,96.000003 117.9791,129.30875 Z"
-       id="rect2193-9" />
-    <ellipse
-       style="opacity:1;fill:#eeeeee;fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:6.70434;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path2247-1"
-       cx="171.64027"
-       cy="96"
-       rx="8.7565432"
-       ry="8.4034777" />
-  </g>
+  <path
+     style="fill:#eeeeee;fill-opacity:1;fill-rule:evenodd;stroke:#333333;stroke-width:9.99731;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 156.0052,45.757693 227.99517,96.000006 156.0052,146.24231 Z"
+     id="rect2193-9-2"
+     sodipodi:nodetypes="cccc" />
 </svg>
