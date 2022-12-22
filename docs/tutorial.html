@@ -142,13 +142,12 @@
 "><button type="button" title="Faster" class="add"></button>
       </fieldset>
     <p>You can also adjust it using the arrow keys and you can jump to the number text box by pressing: <img src="backslash.svg" class="keyIcon">.</p>
-    <p>If instead of a constant <a href="tickrate.html">tick rate</a> in <a href="tickrate.html">consistent mode</a>, you want to run ticks as fast as possible use <a href="tickrate.html">realtime mode</a>.<br>To toggle between <a href="tickrate.html">realtime mode</a> and <a href="tickrate.html">consistent mode</a>, use the check box that looks like this:</p>
+    <p>If instead of a constant <a href="tickrate.html">tick rate</a> in <a href="tickrate.html">consistent mode</a>, you want to run ticks as fast as possible use <a href="tickrate.html">realtime mode</a>.<br>To toggle between <a href="tickrate.html">realtime mode</a> and <a href="tickrate.html">consistent mode</a>, press: <img src="forwardslash.svg" class="keyIcon"> or use the check box that looks like this:</p>
     <input type="checkbox" class="switch_1" style="
     position: relative;
     left: 30px;
     top: 80px;
 " id="realtimeCheckBox" aria-label="Toggle Realtime Mode">
-    <p>Alternatively, <a href="tickrate.html">realtime mode</a> can be toggled by pressing: <img src="forwardslash.svg" class="keyIcon">.</p>
     <div class="icon later" id="phase2">
       <img src="/icon2.svg">
       <h1 class="iconH1"><a href="phase2.html">Phase 2</a></h1>
@@ -171,12 +170,34 @@
     <h1 id="summary">Summary</h1>
     <p>Diagram of different <a href="cell.html">cells</a>, <a href="connection.html">connections</a>, the <a href="types.html">cells' types</a>, their visual appearance and what is going on on the two layers:</p>
     <img src="layers.svg" style="width: 800px;">
+    <p id="open" style="
+    left: 50%;
+    text-align: center;
+    transform: translateX(-50%);
+    visibility: hidden;
+" onclick="window.open('/')" class="link">Play OrCells</p>
+    <p id="close" style="
+    left: 50%;
+    text-align: center;
+    transform: translateX(-50%);
+    visibility: hidden;
+" onclick="window.close();" class="link first">Close this window</p>
 <!--     <p style="
     left: 50%;
     text-align: center;
     transform: translateX(-50%);
 ">(Work in progress, tutorial will be finished soon. For now, just try to work it out or <a
         href="https://discord.gg/2MZS7XZdXj">join the discord for help</a>)</p> -->
+    <script>
+      if (window.opener === null)
+      {
+        document.getElementById("open").style.visibility = "visible";
+      }
+      else
+      {
+        document.getElementById("close").style.visibility = "visible";
+      }
+    </script>
   </div>
 </body>
 

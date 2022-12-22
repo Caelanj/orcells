@@ -8,25 +8,8 @@
 4 very hard, could take up to a week of work
 5 EXTREMELY HARD, could take months of work
 
-idle tick algorithm:
-| copy board.cells into new.cells
-1 loop over all cells in culling.tick(1&2)
-  loop over each cell's connected neighbours using culling.cell.connectedFrom
-    set its new.cells value to OR of all inputs
-    set its new value to a pixel colour in render.data
-  if the bit changes then add it to new.tick and new.tick2
-set board.cells to new.cells
-set culling.tick(1&2) to new.tick(1&2)
-
-
-
-
 /5 interphase 1:
-  -2 change connections to {upperType, lowerType, upperFlipped, lowerFlipped} rather than {upperType, lowerType, flipped, mixed}
-  -3 stop rendering when there is no movement and idle/paused
-  -2 merge canvas.onmousemove with canvas.ontouchmove
-  -4 proper title screen (secretly keep original meme one and make it accessible somehow)
-  -4 puzzles
+  -3 merge mouse events with connect
   -4 settings (drift, quality...)
     -2 gameplay
       -1 switch between PC and mobile mode
@@ -44,8 +27,13 @@ set culling.tick(1&2) to new.tick(1&2)
         -1 show control
   /4 efficient blueprints in better format than JSON (keep the code for JSON format! will be required later)
   /4 mobile support (Ả̶̛G̵͑͘H̸͂̚Ḧ̶̈́Ḧ̸́̍)
+  -4 proper title screen (secretly keep original meme one and make it accessible somehow)
+  -4 puzzles
   
   done:
+    | merge canvas.onmousemove with canvas.ontouchmove
+    | change connections to {upperType, lowerType, upperFlipped, lowerFlipped} rather than {upperType, lowerType, flipped, mixed}
+    | change cell type.lowerType to just type.lower and same for upper
     | text tutorial and documentation
       | add X to help menu
       | fade blur
