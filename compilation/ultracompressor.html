@@ -1,0 +1,109 @@
+<html>
+
+<head>
+  <title>Ultra Compressor</title>
+  <link rel="icon" type="image/svg+xml" href="../icon2.svg">
+  <link href="../style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body class="mainDiv tutorialBody">
+  <h1 class="heading">Ultra Compressor</h1>
+  <div class="tutorialDiv">
+    <p class="first">Input:</p>
+    <textarea id="input" name="input" rows="10" cols="80" spellcheck="false"></textarea>
+    <p>Output: <a id="outText"></a></p><button class="textButton fullButton" style="
+    position: relative;
+    top: 40px;
+    width: 25%;
+" id="compress"><a>Compress</a></button>
+    <textarea id="output" name="output" rows="10" cols="80" readonly="" spellcheck="false" class="first"></textarea>
+    <p>Credits:
+    <ul>
+      <li>
+        <a href="https://terser.org/">Terser</a>
+      </li>
+      <li>
+        <a href="http://dean.edwards.name/packer/">Dean Edwards, Packer</a>
+      </li>
+      <li>
+        <a href="https://pieroxy.net/blog/pages/lz-string/index.html">Pieroxy, LZString</a>
+      </li>
+    </ul>
+    <script src="./terser.js"></script>
+    <script>
+      var script = ""
+      var originalScript
+      var packer
+      var inLengths = []
+      var outLengths = []
+      var originalLines
+      document.getElementById("compress").onclick = (() => {
+        let input = document.getElementById("input").value;
+        if (input.length > 0) {
+          ultracompress(input)
+        }
+      });
+      function ultracompress(code) {
+        originalScript = code
+        script = code
+        Terser.minify(script).then(code => {
+          script = code.code
+          fetch("./packer.js").then(e => {return e.text()}).then((packerCode) => {
+            eval(packerCode)
+            packer = new Packer();
+            script = packer.pack(script, true, true)
+            fetch("./lzString.js").then(e => {return e.text()}).then((LZStringCode) => {
+              eval(LZStringCode)
+              console.log({script: script})
+              script = LZString.compress(script)
+              script = escape(script)
+              script = addEngine(script)
+              document.getElementById("outText").textContent = `(${script.length}/${originalScript.length}=${((script.length / originalScript.length) * 100).toFixed(2)}%)`
+              document.getElementById("outText").style.color = (script.length > originalScript.length) ? "#f00" : "inherit"
+              document.getElementById("output").value = script
+            })
+          })
+        })
+        function escape(code) {
+          return JSON.stringify(code).slice(1, -1).replaceAll("'", "\\'");
+        }
+        function addEngine(code) {
+          return 'u="charCodeAt(";l="position";t="index";r="Math.pow(";a=`for(t=0,p=${r}2,`;C="case ";o=`),n=1;n!=p;)a=m.val&m.${l},m.${l}>>=1,0==m.${l}&&(m.${l}=x,m.val=z.${u}m.${t}++)),t|=(a>0?1:0)*n,n<<=1;`;m=`{${C}0:${a}8${o}`;p=`${o}switch(`;𝐫=`;break;${C}`;e=`c[h++]=i(t),r=h-1,d--${𝐫}`;s=`d&&(d=${r}2,l),l++)`;eval(`a=z=>{y=z.length;var e,s,x=32768,i=String.fromCharCode,t,a,p,n,r,c=[],d=4,h=4,l=3,v="",f=[],m={val:z.${u}0),${l}:x,${t}:1};for(e=0;e<3;e+=1)c[e]=e;${a}2${p}t)${m}r=i(t)${𝐫}1:${a}16${o}r=i(t)}for(c[3]=r,s=r,f.push(r);;){${a}l${p}r=t)${m}${e}1:${a}16${o}${e}2:return f.join("")}if(0==${s},c[r])v=c[r];else{v=s+s.charAt(0)}f.push(v),c[h++]=s+v.charAt(0),s=v,0==--${s}}}`);eval(a(\'' + code + `'));`
+        }
+        //Collect Benchmark Data:
+
+        // Terser.minify(script).then(code => {
+        //   script = code.code
+        //   originalLines = script.split(";").length
+        //   for (let i = 1; i <= originalLines; i++) {
+        //     string = `
+        //     script = originalScript.split(";").slice(0, ${i}).join("")
+        //     inLengths[${i - 1}] = script.length
+        //     fetch("./packer.js").then(e => {return e.text()}).then((packerCode) => {
+        //       eval(packerCode)
+        //       packer = new Packer();
+        //       script = packer.pack(script, true, true)
+        //       fetch("./lzString.js").then(e => {return e.text()}).then((LZStringCode) => {
+        //         eval(LZStringCode)
+        //         script = LZString.compress(script)
+        //         script = escape(script)
+        //         script = addEngine(script)
+        //         console.log("(${i}/"+originalLines+"): "+script.length)
+        //         outLengths[${i - 1}] = script.length
+        //       })
+        //     })
+        //   `
+        //     setTimeout(string, i * 500)
+        //   }
+        //   setTimeout(() => {
+        //     console.log({in: inLengths.join(","), out: outLengths.join(",")})
+        //   }, (originalLines * 500) + 500)
+        // })
+      }
+    </script>
+
+
+  </div>
+</body>
+
+</html>

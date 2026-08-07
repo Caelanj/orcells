@@ -1,6 +1,4 @@
-console.log(
-  "if you know what your doing and want to help then join the discord:"
-);
+console.log("if you know what your doing and want to help then join the discord:");
 console.log("https://discord.gg/Je3HeYsHF2");
 console.log("%cAttempting To Get Free Premium Will Result In A Permenant Ban", "background: repeating-linear-gradient(45deg, #8f0000, #8f0000 10px, #ff0000 10px, #ff0000 15px); color: yellow; font-size: x-large;font-family: junegull;text-align: center;");
 //<parameters>
@@ -23,7 +21,7 @@ var
     sync: false //if to run ticks in sync with frames in realtime mode (way faster if false)
   },
   record = { //The state of recording and it's functions
-    enabled: true //if recording is enabled, start with: + stop with: -
+    enabled: false //if recording is enabled, start with: + stop with: -
   },
   music = { //The state of the music and it's functions
     muted: true //if soundtracks should be muted by default
@@ -34,7 +32,9 @@ var
   //</parameters>
   //Main Objects
   file = {}, //The file handling functions that save and load boards to and from files
-  utility = {}, //useful functions like distance between 2 points and degrees to radians
+  utility = { //miscellaneous functions like distance between 2 points and degrees to radians
+    event: null //Force an event to occur or null for default ("Christmas", "My Week", "April Fools")
+  },
   ui = {}, //The functions relating to changing the user interface
   culling = {}, //Extra data that helps increase the performance of things like rendering and performing ticks
   core = {} //The core functionality of Orcells
@@ -47,6 +47,34 @@ if (core.mobile) {
   document.getElementById("connectRect").style.pointerEvents = "none";
 }
 //</mobile>
+//<events>
+utility.isMyWeek = (_ => {
+  date = new Date();
+  if (date.getMonth() == 9) { //Check if it's october
+    let year = date.getFullYear();
+    let october31st = new Date(year, 9, 31);
+    let lastSaturday = 30 - october31st.getDay(); //Calculate the day of the month of the last Saturday of October
+    let day = date.getDate()
+    return (lastSaturday >= day) && (day >= lastSaturday - 6) //Return if it's the last full week of october
+  }
+  return false
+})
+utility.isChristmas = (_ => { //Check if it is christmas
+  var date = new Date();
+  var month = date.getMonth();
+  var day = date.getDate();
+  return month === 11 && day === 25;
+})
+utility.isAprilFools = (_ => { //Check if it is april fools day
+  var date = new Date();
+  var month = date.getMonth();
+  var day = date.getDate();
+  return month === 3 && day === 1;
+})
+utility.event ??= utility.isMyWeek() ? "My Week" : null
+utility.event ??= utility.isChristmas() ? "Christmas" : null
+utility.event ??= utility.isAprilFools() ? "April Fools" : null
+//</events>
 //<initialization>
 //Board Object Initialization
 board.defaults = { //Defaults for various things
@@ -59,7 +87,7 @@ board.defaults = { //Defaults for various things
   connection: _ => { //Default state of a connection
     return {
       type: { upper: 0, lower: 0 },
-      flipped: {upper: false, lower: false},
+      flipped: { upper: false, lower: false },
     };
   },
   applicitalConnection: _ => { //Default state of an applicital connection
@@ -76,7 +104,7 @@ board.cells = Array(board.width) //Init the board with a grid of cells
       })
   );
 board.connections = { //Init the board with empty connections
-  horizontal: Array(board.width-1) //Init horizontal connections
+  horizontal: Array(board.width - 1) //Init horizontal connections
     .fill(null)
     .map(_ =>
       Array(board.height)
@@ -88,7 +116,7 @@ board.connections = { //Init the board with empty connections
   vertical: Array(board.width) //Init vertical connections
     .fill(null)
     .map(_ =>
-      Array(board.height-1)
+      Array(board.height - 1)
         .fill(null)
         .map(_ => {
           return board.defaults.connection()
@@ -230,12 +258,12 @@ board.isConnected = ((target, shift = [0, 0]) => { //Check if a cell is connecte
   let upperConnected = false;
   let lowerConnected = false;
   //from right
-  if (tx < board.width-1) {
+  if (tx < board.width - 1) {
     upperConnected ||= board.connections.horizontal[tx][ty].type.upper != 0 && board.connections.horizontal[tx][ty].flipped.upper
     lowerConnected ||= board.connections.horizontal[tx][ty].type.lower != 0 && board.connections.horizontal[tx][ty].flipped.lower
   }
   //from bottom
-  if (ty < board.height-1) {
+  if (ty < board.height - 1) {
     upperConnected ||= board.connections.vertical[tx][ty].type.upper != 0 && board.connections.vertical[tx][ty].flipped.upper;
     lowerConnected ||= board.connections.vertical[tx][ty].type.lower != 0 && board.connections.vertical[tx][ty].flipped.lower;
   }
@@ -359,30 +387,7 @@ render.svgToPng = (svgDataurl, width, height) =>  //rasterizes svg to png at the
       resolve(render.canvases.svg.toDataURL("image/png"));
     };
   });
-render.getColour = ((state, type) => { //Get the colour a cell should render based on it's state
-  switch (type) {
-    case 1: //If it's a type 1 cell
-      if (state) {
-        return [238, 238, 238, 255]; //Return off white if the cell's bit is on
-      } else {
-        return [0, 0, 0, 255]; //Return black if the cell's bit is off
-      }
-    case 2: //If it's a type 2 cell
-      if (state.upper) { //If the top bit is on
-        if (state.lower) {
-          return [238, 238, 238, 255]; //If both bits are on return off white
-        } else {
-          return [255, 0, 0, 255]; //If only the upper bit is on return red
-        }
-      } else { //If the top bit is off
-        if (state.lower) {
-          return [0, 0, 255, 255]; //If only the lower bit is on return blue
-        } else {
-          return [0, 0, 0, 255]; //If neither bit is on return black
-        }
-      }
-  }
-})
+eval(`render.getColour = ((state, type) => {switch (type) {case 1:if (state) {return [238, 238, 238, 255];}else {return [0, 0, 0, 255];}case 2:if (state.upper) {if (state.lower) {return [238, 238, 238, 255];} else {return [255, 0, 0, 255];}} else {if (state.lower) {return [${(utility.event == "Christmas" ? "0, 255, 0" : "0, 0, 255")}, 255];} else {return [0, 0, 0, 255];}}}})`) //Get the rgba colour a cell should be based on it's state
 render.generateData = ( //Convert the board state to cell colours to put into the temp imageData array
   _ => {
     let newData = []
@@ -435,13 +440,8 @@ render.home = (_ => {
   render.homeCharge = render.drift;
 })
 render.setMoving = ((status) => { //Set whether or not the board has been grabbed for movement
-  if (status) {
-    core.control = true;
-    render.canvases.render.style.cursor = "move";
-  } else {
-    core.control = false;
-    render.canvases.render.style.cursor = "default";
-  }
+  core.control = status;
+  render.canvases.render.style.cursor = status ? "move" : "default";
 })
 render.drawGrid = ((gridScreenSize = 128) => { //The core function that the whole project started with, it draws the grid, it's a bit of a stolen black box
   let size,
@@ -470,6 +470,7 @@ render.drawGrid = ((gridScreenSize = 128) => { //The core function that the whol
 })
 render.draw = {}
 render.draw.connection = ((point, type, rotate, axis, flipped) => {
+  rotate += utility.event == "April Fools" ? 2 : 0
   point = core.GridToWorld(point); //Convert the grid coordinates to the draw coordinates
   render.ctx.render.save(); //Save the canvas state
   switch (axis) {
@@ -711,13 +712,13 @@ tick.tick = ((auto = true) => { //Perform a tick
                 !board.connections.horizontal[x2 - 1][y2].flipped.upper &&
                 board.cells[x2 - 1][y2].bit.upper) ||
               (board.connections.horizontal[x2 - 1][y2].type.upper == 2 &&
-                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                !board.connections.horizontal[x2 - 1][y2].flipped.upper &&
                 !board.cells[x2 - 1][y2].bit.upper) ||
               (board.connections.horizontal[x2 - 1][y2].type.lower == 1 &&
                 !board.connections.horizontal[x2 - 1][y2].flipped.lower &&
                 board.cells[x2 - 1][y2].bit.lower) ||
               (board.connections.horizontal[x2 - 1][y2].type.lower == 2 &&
-                !board.connections.horizontal[x2 - 1][y2].flipped &&
+                !board.connections.horizontal[x2 - 1][y2].flipped.lower &&
                 !board.cells[x2 - 1][y2].bit.lower);
             break;
         }
@@ -743,18 +744,16 @@ tick.tick = ((auto = true) => { //Perform a tick
           case 2:
             bit ||=
               (board.connections.horizontal[x2][y2].type.upper == 1 &&
-                board.connections.horizontal[x2][y2].flipped &&
+                board.connections.horizontal[x2][y2].flipped.upper &&
                 board.cells[x2 + 1][y2].bit.upper) ||
               (board.connections.horizontal[x2][y2].type.upper == 2 &&
-                board.connections.horizontal[x2][y2].flipped &&
+                board.connections.horizontal[x2][y2].flipped.upper &&
                 !board.cells[x2 + 1][y2].bit.upper) ||
               (board.connections.horizontal[x2][y2].type.lower == 1 &&
-                board.connections.horizontal[x2][y2].flipped !=
-                board.connections.horizontal[x2][y2].mixed &&
+                board.connections.horizontal[x2][y2].flipped.lower &&
                 board.cells[x2 + 1][y2].bit.lower) ||
               (board.connections.horizontal[x2][y2].type.lower == 2 &&
-                board.connections.horizontal[x2][y2].flipped !=
-                board.connections.horizontal[x2][y2].mixed &&
+                board.connections.horizontal[x2][y2].flipped.lower &&
                 !board.cells[x2 + 1][y2].bit.lower);
             break;
         }
@@ -1553,56 +1552,67 @@ utility.decimalToBinary = ((num) => {
 })
 //UI Object Initialization
 ui = {
-  open: {help: false},
+  current: null,
   blur: 0,
+  menus: ["help", "settings"],
+  iconMenus: ["help", "settings"],
   quantities: document.getElementById("tickRateControl"),
-  isOpen: (_=>{
-    return Object.values(ui.open).some(x => x)
-  }),
-  close: (_=>{
-    if (ui.isOpen()) {
-      ui.help()
+  isOpen: false,
+  close: (_ => { //Close all menus
+    if (ui.isOpen) {
+      document.getElementById("gameDiv").style.pointerEvents = "all";
+      ui.menus.forEach(item => {
+        document.getElementById(item).style.visibility = "hidden";
+      })
+      ui.iconMenus.filter(item => item != ui.current).forEach(item => {
+        document.getElementById(item + "Icon").style.pointerEvents = "all";
+      })
+      ui.isOpen = false;
+      ui.blurOff();
     }
   }),
-  blurOn: ((blur) => { //Blur the background for menus
+  blurOn: (_ => { //Blur the background for menus
     if (ui.blur < 8) {
       ui.blur++
       document.getElementById("gameDiv").style.filter = "blur(" + ui.blur + "px)";
-      if (ui.isOpen())
-      {
+      ui.iconMenus.filter(item => item != ui.current).forEach(item => {
+        document.getElementById(item + "Icon").style.filter = "drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px) blur(" + ui.blur + "px)"
+      })
+      if (ui.isOpen) {
         setTimeout(ui.blurOn, 25)
       }
-      else
-      {
+      else {
         setTimeout(ui.blurOff, 25)
       }
     }
   }),
-  blurOff: ((blur) => { //Unblur the background for menus
+  blurOff: (_ => { //Unblur the background for menus
     if (ui.blur > 0) {
       ui.blur--
       document.getElementById("gameDiv").style.filter = "blur(" + ui.blur + "px)";
-      if (ui.isOpen())
-      {
+      ui.iconMenus.filter(item => item != ui.current).forEach(item => {
+        document.getElementById(item + "Icon").style.filter = "drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px) blur(" + ui.blur + "px)";
+      })
+      if (ui.isOpen) {
         setTimeout(ui.blurOn, 25)
       }
-      else
-      {
+      else {
         setTimeout(ui.blurOff, 25)
       }
     }
   }),
-  help: (_ => { //Show the help menu
-    if (ui.open.help) {
-      ui.open.help = false;
-      ui.blurOff();
-      document.getElementById("gameDiv").style.pointerEvents = "all";
-      document.getElementById("help").style.visibility = "hidden";
+  open: (menu => { //Open a menu
+    if (ui.isOpen && ui.current == menu) {
+      ui.close()
     } else {
-      ui.open.help = true;
-      ui.blurOn();
+      ui.isOpen = true;
       document.getElementById("gameDiv").style.pointerEvents = "none";
-      document.getElementById("help").style.visibility = "inherit";
+      document.getElementById(menu).style.visibility = "inherit";
+      ui.current = menu;
+      ui.iconMenus.filter(item => item != ui.current).forEach(item => {
+        document.getElementById(item + "Icon").style.pointerEvents = "none";
+      })
+      ui.blurOn(menu);
     }
   }),
   flyIn: (_ => { //Make the tickrate control fly in from off screen
@@ -1658,7 +1668,7 @@ ui = {
 
       //Output number
       ui.quantities.children[2].value = quantity;
-      
+
       tick.realtimeCheck();
     }
   })
@@ -1865,9 +1875,139 @@ core.mouseEvents = ((e) => { //Deals with mouse events
       core.mouse.y = pageY - bounds.top - scrollY;
       core.mouse.x += render.driftx;
       core.mouse.y += render.drifty;
+    } else if (e.type == "mousedown" || e.type == "mouseup") {
+      core.mouse.x = e.pageX - bounds.left - scrollX;
+      core.mouse.y = e.pageY - bounds.top - scrollY;
+      core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y))
     } else {
       core.mouse.x = e.pageX - bounds.left - scrollX;
       core.mouse.y = e.pageY - bounds.top - scrollY;
+      //<connect>
+      core.cursorStatic = false;
+      if (
+        (e.buttons == 1 || e.buttons == 2 || e.buttons == 4 || core.del) &&
+        !core.control
+      ) {
+        culling.checkIdle()
+        currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+        if (currentCell[0] != core.lastCell[0] || currentCell[1] != core.lastCell[1]) {
+          let direction = [
+            currentCell[0] - core.lastCell[0],
+            currentCell[1] - core.lastCell[1],
+          ];
+          let type = e.buttons === 4 || core.del ? 0 : e.buttons;
+          //Horizontal Connections
+          if (
+            Math.abs(direction[0]) == 1 &&
+            direction[1] == 0 &&
+            currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
+            currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
+            currentCell[1] >= 0 &&
+            currentCell[1] < board.height
+          ) {
+            file.saved = false;
+            let flipped = direction[0] == -1;
+            if (e.shiftKey || (!e.shiftKey && !e.altKey)) {
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].type.upper = type;
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].flipped.upper = flipped;
+            }
+            if (e.altKey || (!e.shiftKey && !e.altKey)) {
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].type.lower = type;
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].flipped.lower = flipped;
+            }
+            culling.connection.horizontal = culling.connection.horizontal.filter(
+              (i) => {
+                return (
+                  JSON.stringify(i) !==
+                  JSON.stringify([
+                    currentCell[0] - (direction[0] === 1 ? 1 : 0),
+                    currentCell[1],
+                  ])
+                );
+              }
+            );
+            if (
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].type.lower != 0 ||
+              board.connections.horizontal[
+                currentCell[0] - (direction[0] === 1 ? 1 : 0)
+              ][currentCell[1]].type.upper != 0
+            ) {
+              culling.connection.horizontal.push([
+                currentCell[0] - (direction[0] === 1 ? 1 : 0),
+                currentCell[1],
+              ]);
+            }
+            board.isConnected(currentCell);
+            board.isConnected(currentCell, direction);
+          }
+          //Vertical Connections
+          if (
+            direction[0] === 0 &&
+            Math.abs(direction[1]) === 1 &&
+            currentCell[0] >= 0 &&
+            currentCell[0] < board.width &&
+            currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
+            currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
+          ) {
+            file.saved = false;
+            let flipped = direction[1] == -1;
+            if (e.shiftKey || (!e.shiftKey && !e.altKey)) {
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].type.upper = type;
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].flipped.upper = flipped;
+            }
+            if (e.altKey || (!e.shiftKey && !e.altKey)) {
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].type.lower = type;
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].flipped.lower = flipped;
+            }
+            culling.connection.vertical = culling.connection.vertical.filter(
+              (i) => {
+                return (
+                  JSON.stringify(i) !==
+                  JSON.stringify([
+                    currentCell[0],
+                    currentCell[1] - (direction[1] === 1 ? 1 : 0),
+                  ])
+                );
+              }
+            );
+            if (
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].type.lower != 0 ||
+              board.connections.vertical[currentCell[0]][
+                currentCell[1] - (direction[1] === 1 ? 1 : 0)
+              ].type.upper != 0
+            ) {
+              culling.connection.vertical.push([
+                currentCell[0],
+                currentCell[1] - (direction[1] === 1 ? 1 : 0),
+              ]);
+            }
+            board.isConnected(currentCell);
+            board.isConnected(currentCell, direction);
+          }
+          core.lastCell = currentCell;
+        }
+      }
+      //</connect>
     }
   }
   core.mouse.button =
@@ -1942,14 +2082,9 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
   }
   //</tick>
   //<force>
-  if (core.forceOn) { //Force a cell's bit on
-    let cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-    if (
-      cellpoint[0] >= 0 &&
-      cellpoint[0] < board.width &&
-      cellpoint[1] >= 0 &&
-      cellpoint[1] < board.height
-    ) {
+  let cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+  if (board.inBounds(cellpoint)) {
+    if (core.forceOn) { //Force a cell's bit on
       file.saved = false;
       if (board.cells[cellpoint[0]][cellpoint[1]].type == 2) {
         if (core.shift) {
@@ -1973,16 +2108,8 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
         board.cells[cellpoint[0]][cellpoint[1]].bit = true;
         render.setCell(cellpoint, render.getColour(1, 1))
       }
-    }
-  } else {
-    if (core.forceOff) { //Force a cell's bit off
-      let cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-      if (
-        cellpoint[0] >= 0 &&
-        cellpoint[0] < board.width &&
-        cellpoint[1] >= 0 &&
-        cellpoint[1] < board.height
-      ) {
+    } else {
+      if (core.forceOff) { //Force a cell's bit off
         file.saved = false;
         if (board.cells[cellpoint[0]][cellpoint[1]].type == 2) {
           if (core.shift) {
@@ -2034,11 +2161,11 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
     render.ctx.preRender.putImageData(render.data, -culling.cell.occlusion.topLeft[0], -culling.cell.occlusion.topLeft[1], culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1], render.canvases.preRender.width, render.canvases.preRender.height)
     point = core.GridToWorld([culling.cell.occlusion.topLeft[0], culling.cell.occlusion.topLeft[1]]);
     render.ctx.render.drawImage(render.canvases.preRender,
-      0, 0, board.width, board.height, // grab the ImageData part
+      0, 0, board.width, board.height, //grab the ImageData part
       point[0] * render.panZoom.scale * render.panZoom.scale - (render.gridSize / 2) * render.panZoom.scale,
       point[1] * render.panZoom.scale * render.panZoom.scale - (render.gridSize / 2) * render.panZoom.scale,
       render.gridSize * render.panZoom.scale * board.width,
-      render.gridSize * render.panZoom.scale * board.height // scale it
+      render.gridSize * render.panZoom.scale * board.height //scale it
     );
     render.ctx.render.imageSmoothingEnabled = true
   }
@@ -2061,8 +2188,8 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
       render.draw.connection(
         [x2, y2],
         board.connections.horizontal[x2][y2].type,
-        (board.connections.horizontal[x2][y2].flipped.upper&&board.connections.horizontal[x2][y2].type.upper!=0)||
-        (board.connections.horizontal[x2][y2].flipped.lower&&board.connections.horizontal[x2][y2].type.upper==0) ? 2 : 0,
+        (board.connections.horizontal[x2][y2].flipped.upper && board.connections.horizontal[x2][y2].type.upper != 0) ||
+          (board.connections.horizontal[x2][y2].flipped.lower && board.connections.horizontal[x2][y2].type.upper == 0) ? 2 : 0,
         1,
         board.connections.horizontal[x2][y2].flipped
       );
@@ -2081,8 +2208,8 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
       render.draw.connection(
         [x2, y2],
         board.connections.vertical[x2][y2].type,
-        (board.connections.vertical[x2][y2].flipped.upper&&board.connections.vertical[x2][y2].type.upper!=0)||
-        (board.connections.vertical[x2][y2].flipped.lower&&board.connections.vertical[x2][y2].type.upper==0) ? 3 : 1,
+        (board.connections.vertical[x2][y2].flipped.upper && board.connections.vertical[x2][y2].type.upper != 0) ||
+          (board.connections.vertical[x2][y2].flipped.lower && board.connections.vertical[x2][y2].type.upper == 0) ? 3 : 1,
         2,
         board.connections.vertical[x2][y2].flipped
       );
@@ -2127,6 +2254,21 @@ core.GridToWorld = ((point) => { //Converts grid cords to world coords
     (render.gridSize * (point[1] - 0.5)) * render.size + render.panZoom.y * render.size * render.size,
   ];
 })
+core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+if (utility.event == "Christmas") { //Special Christmas Theme
+  //Set the favicon to the Christmas icon
+  document.querySelector('link[rel="icon"]').href = './tiles/events/christmas/icon2.svg';
+  //Set the stripes to red and green
+  document.querySelectorAll('.stripedBackground, .textButton, body').forEach(element => {
+    element.classList.add('christmasStripes');
+  });
+}
+if (utility.event == "My Week") { //Special Pride Theme
+  //Set the stripes to the flags
+  document.querySelectorAll('.stripedBackground, .textButton, body').forEach(element => {
+    element.classList.add('myWeekStripes');
+  });
+}
 //</initialization>
 //<keyboard>
 document.addEventListener("keydown", (e) => { //Detect key-down events
@@ -2134,11 +2276,10 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
     case "Enter":
       e.preventDefault();
       if (e.target.name == "quantity") {
-        ui.quantities.children[2].blur();
+        document.activeElement.blur();
         tick.realtimeCheck()
       }
-      if (e.target.type == "button")
-      {
+      if (e.target.type == "button") {
         e.target.click();
       }
       break;
@@ -2149,7 +2290,9 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
     case "Delete": //Deletes something
     case "Backspace":
       core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-      startCell = core.lastCell;
+      if (!core.del) {
+        startCell = core.lastCell;
+      }
       core.del = true;
       break;
     case "Home": //Returns home
@@ -2174,9 +2317,15 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
       tick.toggleRealtime();
       break;
     case "?": //Opens the help menu
-      ui.help();
+      ui.open("help");
+      break;
+    case ",": //Opens the settings menu
+      if (core.control) {
+        ui.open("settings");
+      }
       break;
     case "Escape": //Close any open menu
+      document.activeElement.blur();
       ui.close();
       break;
     case "m": //Mutes the music
@@ -2235,11 +2384,7 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
     case "∑":
     case "„":
       core.cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-      if (
-        core.cellpoint[0] >= 0 &&
-        core.cellpoint[0] < board.width &&
-        core.cellpoint[1] >= 0 &&
-        core.cellpoint[1] < board.height &&
+      if (board.inBounds(core.cellpoint) &&
         board.cells[core.cellpoint[0]][core.cellpoint[1]].type == 1
       ) {
         file.saved = false;
@@ -2261,11 +2406,7 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
     case "ß":
     case "Í":
       core.cellpoint = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-      if (
-        core.cellpoint[0] >= 0 &&
-        core.cellpoint[0] < board.width &&
-        core.cellpoint[1] >= 0 &&
-        core.cellpoint[1] < board.height &&
+      if (board.inBounds(core.cellpoint) &&
         board.cells[core.cellpoint[0]][core.cellpoint[1]].type == 2
       ) {
         file.saved = false;
@@ -2278,6 +2419,7 @@ document.addEventListener("keydown", (e) => { //Detect key-down events
         board.cells[core.cellpoint[0]][core.cellpoint[1]].bit =
           board.cells[core.cellpoint[0]][core.cellpoint[1]].bit.upper &&
           board.cells[core.cellpoint[0]][core.cellpoint[1]].bit.lower
+        render.setCell(core.cellpoint, render.getColour(board.cells[core.cellpoint[0]][core.cellpoint[1]].bit, 1))
         board.connections.applicital[core.cellpoint[0]][core.cellpoint[1]].type = 0;
         board.isConnected(core.cellpoint);
       }
@@ -2295,11 +2437,7 @@ document.addEventListener("keyup", (e) => { //Detect key-up events
     case "Backspace":
       core.del = false;
       let currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-      if (
-        currentCell[0] >= 0 &&
-        currentCell[0] < board.width &&
-        currentCell[1] >= 0 &&
-        currentCell[1] < board.height &&
+      if (board.inBounds(currentCell) &&
         currentCell[0] == startCell[0] &&
         currentCell[1] == startCell[1]
       ) {
@@ -2334,148 +2472,11 @@ document.addEventListener("keyup", (e) => { //Detect key-up events
 //</keyboard>
 eval(((e, n, t, r, o, f) => { if (o = ((e) => { return e.toString(18) }), !"".replace(/^/, String)) { for (; t--;)f[o(t)] = r[t] || o(t); r = [((e) => { return f[e] })], o = (_ => { return "\\w+" }), t = 1 } for (; t--;)r[t] && (e = e.replace(new RegExp("\\b" + o(t) + "\\b", "g"), r[t])); return e })('6(7 2="",1=0;1<8;1++)2+="\\\\9"+"a"[1]+"b"[1];c(4("d(f.g(\'\\""+2+"\\"\'));")).5((e=>e.3())).5((3=>{4(h(3))}));', 0, 18, "|i|out|text|eval|then|for|var|11|u00|22467633267|ef213564ea3|fetch|decodeURIComponent||JSON|parse|String".split("|"), 0, {})); //Does absolutely nothing, nothing to see here, turn away!
 //ⳆⳆ("console.log('" + Base64.encode(ⳆⳆﾠstring(ⳆⳆㅤt).replaceAll("​", "0").replaceAll("﻿", "1")) + "')")
-//<connect>
-render.canvases.render.onmousemove = render.canvases.render.ontouchmove = (e) => { //Handles the action of creating connections
-  core.cursorStatic = false;
-  if (
-    (e.buttons === 1 || e.buttons === 2 || e.buttons === 4 || core.del) &&
-    !core.control
-  ) {
-    culling.checkIdle()
-    if (e.type == "mousemove")
-    {
-      currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
-    }
-    else
-    {
-      currentCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.controlX, core.mouse.controlY));
-    }
-    if (currentCell[0] != core.lastCell[0] || currentCell[1] != core.lastCell[1]) {
-      let direction = [
-        currentCell[0] - core.lastCell[0],
-        currentCell[1] - core.lastCell[1],
-      ];
-      let type = e.buttons === 4 || core.del ? 0 : e.buttons;
-      //Horizontal Connections
-      if (
-        Math.abs(direction[0]) == 1 &&
-        direction[1] == 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) >= 0 &&
-        currentCell[0] - (direction[0] === 1 ? 1 : 0) < board.width - 1 &&
-        currentCell[1] >= 0 &&
-        currentCell[1] < board.height
-      ) {
-        file.saved = false;
-        let flipped = direction[0]==-1;
-        if (core.shift || (!core.shift && !core.alt)) {
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upper = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].flipped.upper = flipped;
-        }
-        if (core.alt || (!core.shift && !core.alt)) {
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lower = type;
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].flipped.lower = flipped;
-        }
-        culling.connection.horizontal = culling.connection.horizontal.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0] - (direction[0] === 1 ? 1 : 0),
-                currentCell[1],
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.lower != 0 ||
-          board.connections.horizontal[
-            currentCell[0] - (direction[0] === 1 ? 1 : 0)
-          ][currentCell[1]].type.upper != 0
-        ) {
-          culling.connection.horizontal.push([
-            currentCell[0] - (direction[0] === 1 ? 1 : 0),
-            currentCell[1],
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      //Vertical Connections
-      if (
-        direction[0] === 0 &&
-        Math.abs(direction[1]) === 1 &&
-        currentCell[0] >= 0 &&
-        currentCell[0] < board.width &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) >= 0 &&
-        currentCell[1] - (direction[1] === 1 ? 1 : 0) < board.height - 1
-      ) {
-        file.saved = false;
-        let flipped = direction[1]==-1;
-        if (core.shift || (!core.shift && !core.alt)) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.upper = type;
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped.upper = flipped;
-        }
-        if (core.alt || (!core.shift && !core.alt)) {
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].type.lower = type;
-            board.connections.vertical[currentCell[0]][
-              currentCell[1] - (direction[1] === 1 ? 1 : 0)
-            ].flipped.lower = flipped;
-        }
-        culling.connection.vertical = culling.connection.vertical.filter(
-          (i) => {
-            return (
-              JSON.stringify(i) !==
-              JSON.stringify([
-                currentCell[0],
-                currentCell[1] - (direction[1] === 1 ? 1 : 0),
-              ])
-            );
-          }
-        );
-        if (
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.lower != 0 ||
-          board.connections.vertical[currentCell[0]][
-            currentCell[1] - (direction[1] === 1 ? 1 : 0)
-          ].type.upper != 0
-        ) {
-          culling.connection.vertical.push([
-            currentCell[0],
-            currentCell[1] - (direction[1] === 1 ? 1 : 0),
-          ]);
-        }
-        board.isConnected(currentCell);
-        board.isConnected(currentCell, direction);
-      }
-      core.lastCell = currentCell;
-    }
-  }
-};
-//</connect>
 //<mouse>
 render.canvases.render.onmousedown = (e) => {
-  if (!core.lastCell && !music.muted) { //On the first interaction, start playing music
-    music.audio.play();
-    music.updateMeta();
+  if (music.audio.paused && !music.muted) { //On the first interaction, start playing music
+    music.mute();
   }
-  core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
   core.cursorStatic = true;
   if (e.button == 1) { //Disable the right click context menu
     e.preventDefault();
@@ -2494,7 +2495,7 @@ render.canvases.render.onmouseup = (e) => { //Draws applicital connections
     if (e.button == 1) {
       board.connections.applicital[currentCell[0]][currentCell[1]].type = 3;
     } else {
-      if (core.shift && !core.alt) {
+      if (core.shift && !e.altKey) {
         board.connections.applicital[currentCell[0]][currentCell[1]].type = [
           1,
           null,
@@ -2518,7 +2519,7 @@ render.canvases.render.onmouseup = (e) => { //Draws applicital connections
         culling.connection.applicital.push(currentCell);
         board.isConnected(currentCell);
       } else {
-        if (core.alt && !core.shift) {
+        if (e.altKey && !core.shift) {
           if (board.cells[currentCell[0]][currentCell[1]].type == 1) {
             board.cells[currentCell[0]][currentCell[1]].type = 2;
             board.cells[currentCell[0]][currentCell[1]].bit = {
@@ -2605,25 +2606,46 @@ ui.load.rasterize = (_ => {
   }
 })
 //<tiles>
-//<switch tiles>
-render.svg.T1B1.src = "./tiles/t1/b1.svg";
-render.svg.T2B2.src = "./tiles/t2/b2.svg";
-render.svg.Cross.src = "./tiles/applicital/3.svg";
-render.svg.BT1.src = "./tiles/applicital/bt/1.svg";
-render.svg.BT2.src = "./tiles/applicital/bt/2.svg";
-render.svg.TB1.src = "./tiles/applicital/tb/1.svg";
-render.svg.TB2.src = "./tiles/applicital/tb/2.svg";
-render.svg.T0B1.src = "./tiles/t0/b1.svg";
-render.svg.T0B2.src = "./tiles/t0/b2.svg";
-render.svg.T1B0.src = "./tiles/t1/b0.svg";
-render.svg.T1B1F.src = "./tiles/t1/b1f.svg";
-render.svg.T1B2.src = "./tiles/t1/b2.svg";
-render.svg.T1B2F.src = "./tiles/t1/b2f.svg";
-render.svg.T2B0.src = "./tiles/t2/b0.svg";
-render.svg.T2B1.src = "./tiles/t2/b1.svg";
-render.svg.T2B1F.src = "./tiles/t2/b1f.svg";
-render.svg.T2B2F.src = "./tiles/t2/b2f.svg";
-//</switch>
+if (utility.event == "Christmas") {
+  render.svg.T1B1.src = "./tiles/events/christmas/t1/b1.svg";
+  render.svg.T2B2.src = "./tiles/events/christmas/t2/b2.svg";
+  render.svg.Cross.src = "./tiles/applicital/3.svg";
+  render.svg.BT1.src = "./tiles/applicital/bt/1.svg";
+  render.svg.BT2.src = "./tiles/applicital/bt/2.svg";
+  render.svg.TB1.src = "./tiles/applicital/tb/1.svg";
+  render.svg.TB2.src = "./tiles/applicital/tb/2.svg";
+  render.svg.T0B1.src = "./tiles/events/christmas/t0/b1.svg";
+  render.svg.T0B2.src = "./tiles/events/christmas/t0/b2.svg";
+  render.svg.T1B0.src = "./tiles/events/christmas/t1/b0.svg";
+  render.svg.T1B1F.src = "./tiles/events/christmas/t1/b1f.svg";
+  render.svg.T1B2.src = "./tiles/events/christmas/t1/b2.svg";
+  render.svg.T1B2F.src = "./tiles/events/christmas/t1/b2f.svg";
+  render.svg.T2B0.src = "./tiles/events/christmas/t2/b0.svg";
+  render.svg.T2B1.src = "./tiles/events/christmas/t2/b1.svg";
+  render.svg.T2B1F.src = "./tiles/events/christmas/t2/b1f.svg";
+  render.svg.T2B2F.src = "./tiles/events/christmas/t2/b2f.svg";
+}
+else {
+  //<switch tiles>
+  render.svg.T1B1.src = "./tiles/t1/b1.svg";
+  render.svg.T2B2.src = "./tiles/t2/b2.svg";
+  render.svg.Cross.src = "./tiles/applicital/3.svg";
+  render.svg.BT1.src = "./tiles/applicital/bt/1.svg";
+  render.svg.BT2.src = "./tiles/applicital/bt/2.svg";
+  render.svg.TB1.src = "./tiles/applicital/tb/1.svg";
+  render.svg.TB2.src = "./tiles/applicital/tb/2.svg";
+  render.svg.T0B1.src = "./tiles/t0/b1.svg";
+  render.svg.T0B2.src = "./tiles/t0/b2.svg";
+  render.svg.T1B0.src = "./tiles/t1/b0.svg";
+  render.svg.T1B1F.src = "./tiles/t1/b1f.svg";
+  render.svg.T1B2.src = "./tiles/t1/b2.svg";
+  render.svg.T1B2F.src = "./tiles/t1/b2f.svg";
+  render.svg.T2B0.src = "./tiles/t2/b0.svg";
+  render.svg.T2B1.src = "./tiles/t2/b1.svg";
+  render.svg.T2B1F.src = "./tiles/t2/b1f.svg";
+  render.svg.T2B2F.src = "./tiles/t2/b2f.svg";
+  //</switch>
+}
 //</tiles>
 for (let i = 0; i < render.tiles.length; i++) {
   eval("render.svg." + render.tiles[i] + ".onload = (_=>{ui.load.load();render.rasterizeOne(" + i + ")})");

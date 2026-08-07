@@ -10,9 +10,13 @@
 
 <body class="mainDiv tutorialBody">
   <h1 class="heading">OrCells Tutorial</h1>
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="64px" id="Layer_1" style="position: absolute;top: 4px;left: 4px;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;" version="1.1" viewBox="0 0 16 16" width="64px" xml:space="preserve" onclick="window.location.href='home.html'">
-          <path d="M15.45,7L14,5.551V2c0-0.55-0.45-1-1-1h-1c-0.55,0-1,0.45-1,1v0.553L9,0.555C8.727,0.297,8.477,0,8,0S7.273,0.297,7,0.555  L0.55,7C0.238,7.325,0,7.562,0,8c0,0.563,0.432,1,1,1h1v6c0,0.55,0.45,1,1,1h3v-5c0-0.55,0.45-1,1-1h2c0.55,0,1,0.45,1,1v5h3  c0.55,0,1-0.45,1-1V9h1c0.568,0,1-0.437,1-1C16,7.562,15.762,7.325,15.45,7z"></path>
-  <a href="home.html"></a>
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="64px" id="Layer_1"
+    style="background: #eee;position: fixed;top: 0;left: 0;/* border: 5px solid #333; */border-radius: 16px;filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);cursor: pointer;z-index: 1;"
+    version="1.1" viewBox="0 0 16 16" width="64px" xml:space="preserve" onclick="window.location.href='home.html'">
+    <path
+      d="M15.45,7L14,5.551V2c0-0.55-0.45-1-1-1h-1c-0.55,0-1,0.45-1,1v0.553L9,0.555C8.727,0.297,8.477,0,8,0S7.273,0.297,7,0.555  L0.55,7C0.238,7.325,0,7.562,0,8c0,0.563,0.432,1,1,1h1v6c0,0.55,0.45,1,1,1h3v-5c0-0.55,0.45-1,1-1h2c0.55,0,1,0.45,1,1v5h3  c0.55,0,1-0.45,1-1V9h1c0.568,0,1-0.437,1-1C16,7.562,15.762,7.325,15.45,7z">
+    </path>
+    <a href="home.html"></a>
   </svg>
   <div class="tutorialDiv">
     <p class="first">Welcome To OrCells, The simple but complicated, <a
@@ -23,16 +27,21 @@
     <ol>
       <li onclick="document.getElementById('basics').scrollIntoView({behavior: 'smooth'});" class="link">Basics</li>
       <li onclick="document.getElementById('forcing').scrollIntoView({behavior: 'smooth'});" class="link">Forcing</li>
-      <li onclick="document.getElementById('connectDisconnect').scrollIntoView({behavior: 'smooth'});" class="link">Connecting/Disconnecting</li>
+      <li onclick="document.getElementById('connectDisconnect').scrollIntoView({behavior: 'smooth'});" class="link">
+        Connecting/Disconnecting</li>
       <li onclick="document.getElementById('tick').scrollIntoView({behavior: 'smooth'});" class="link">Ticks</li>
     </ol>
     <p onclick="document.getElementById('phase2').scrollIntoView({behavior: 'smooth'});" class="link">Phase 2</p>
     <ol>
       <li onclick="document.getElementById('layer').scrollIntoView({behavior: 'smooth'});" class="link">Layers</li>
-      <li onclick="document.getElementById('2cell').scrollIntoView({behavior: 'smooth'});" class="link">Type 2 cells</li>
-      <li onclick="document.getElementById('splitMerge').scrollIntoView({behavior: 'smooth'});" class="link">Splitting/Merging</li>
-      <li onclick="document.getElementById('applicital').scrollIntoView({behavior: 'smooth'});" class="link">Applicital Connections</li>
-      <li onclick="document.getElementById('applicital').scrollIntoView({behavior: 'smooth'});" class="link">Summary</li>
+      <li onclick="document.getElementById('2cell').scrollIntoView({behavior: 'smooth'});" class="link">Type 2 cells
+      </li>
+      <li onclick="document.getElementById('splitMerge').scrollIntoView({behavior: 'smooth'});" class="link">
+        Splitting/Merging</li>
+      <li onclick="document.getElementById('applicital').scrollIntoView({behavior: 'smooth'});" class="link">Applicital
+        Connections</li>
+      <li onclick="document.getElementById('applicital').scrollIntoView({behavior: 'smooth'});" class="link">Summary
+      </li>
     </ol>
     <ol>
     </ol>
@@ -54,8 +63,8 @@
     <h1 id="forcing"><a href="forcing.html">Forcing</a></h1>
     <p>To set the bit of a <a href="cell.html">cell</a> to on, hover over it and press: <img src="e.svg"
         class="keyIcon">. To
-      set the bit to off press: <img src="q.svg" class="keyIcon">.<br>This is called <a
-        href="forcing.html">forcing</a>. When
+      set the bit to off press: <img src="q.svg" class="keyIcon">.<br>This is called <a href="forcing.html">forcing</a>.
+      When
       <a href="forcing.html">forcing</a> a
       <a href="cell.html">cell</a>, its bit will always stay in the state you force it while that key is held down.
     </p>
@@ -64,28 +73,35 @@
       around.<br>There is no need to let go and
       press again between <a href="cell.html">cells</a> when <a href="forcing.html">forcing</a> or <a
         href="connecting.html">connecting</a>/disconnecting so you can drag.</p>
-    <h1 id="connectDisconnect"><a href="connecting.html">Connecting</a>/<a href="disconnecting.html">Disconnecting</a></h1>
+    <h1 id="connectDisconnect"><a href="connecting.html">Connecting</a>/<a href="disconnecting.html">Disconnecting</a>
+    </h1>
     <p><a href="connection.html">Connections</a> are used to link <a href="cell.html">cells</a> together to make
       them interact with each other.<br>they send an output
       which is on or off
       to the
       <a href="cell.html">cell</a> it's pointing to, based on the state of the <a href="cell.html">cell</a> it
       points from as the input.
-      </p><p>In the case of <a href="buffer.html">buffers</a>, this output will match the bit of the input <a
+    </p>
+    <p>In the case of <a href="buffer.html">buffers</a>, this output will match the bit of the input <a
         href="cell.html">cell</a>.<br>Meaning <a href="buffer.html">buffers</a> essentially link
-      <a href="cell.html">cells</a> in a chain that signals can travel along.</p><p>In the case of <a href="not.html">nots</a>, this output will be the opposite to the bit of the input <a
+      <a href="cell.html">cells</a> in a chain that signals can travel along.
+    </p>
+    <p>In the case of <a href="not.html">nots</a>, this output will be the opposite to the bit of the input <a
         href="cell.html">cell</a>.
     </p>
     <p>To create a
       <a href="buffer.html">buffer</a>, hold left
       click and drag over the grid line between two <a href="cell.html">cells</a> in
-      the direction you want to make the <a href="connection.html">connection</a>.<br><a
-        href="buffer.html">buffers</a> look like this:
+      the direction you want to make the <a href="connection.html">connection</a>.<br><a href="buffer.html">buffers</a>
+      look like this:
     </p>
     <img src="buffer.svg">
-    <p>To create a <a href="not.html">not</a>, it's the same as creating a <a href="buffer.html">buffer</a> but instead of left click, use right click.<br><a href="not.html">Nots</a> look like this:</p>
+    <p>To create a <a href="not.html">not</a>, it's the same as creating a <a href="buffer.html">buffer</a> but instead
+      of left click, use right click.<br><a href="not.html">Nots</a> look like this:</p>
     <img src="not.svg">
-    <p>To remove a <a href="connection.html">connection</a>, hold middle click, <img src="delete.svg" class="keyIcon"> or <img src="backspace.svg" class="keyIcon"> and then drag between two cells in the same way as creating a <a href="connection.html">connection</a>.</p>
+    <p>To remove a <a href="connection.html">connection</a>, hold middle click, <img src="delete.svg" class="keyIcon">
+      or <img src="backspace.svg" class="keyIcon"> and then drag between two cells in the same way as creating a <a
+        href="connection.html">connection</a>.</p>
     <h1 id="tick"><a href="tick.html">Ticks</a></h1>
     <p>Every tick, all <a href="cell.html">cells</a> that have inputs, will have the bit on if any of those inputs are
       on, otherwise if all
@@ -120,29 +136,39 @@
         d="M256,0C114.617,0,0,114.615,0,256s114.617,256,256,256s256-114.615,256-256S397.383,0,256,0z M224,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z M352,320  c0,8.836-7.164,16-16,16h-32c-8.836,0-16-7.164-16-16V192c0-8.836,7.164-16,16-16h32c8.836,0,16,7.164,16,16V320z">
       </path>
     </svg>
-    <p>To step forward once by performing one tick, press: <img src="period.svg" class="keyIcon">, or pressing the button that looks like this:</p>
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 512 512" style="height: 100px;
+    <p>To step forward once by performing one tick, press: <img src="period.svg" class="keyIcon">, or pressing the
+      button that looks like this:</p>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px"
+      viewBox="0 0 512 512" style="height: 100px;
     width: 100px;
     left: 2%;
     top: 80px;
     position: relative;
     filter: drop-shadow(rgb(255, 255, 255) -1px -1px 0px) drop-shadow(rgb(136, 136, 136) 2px -1px 0px) drop-shadow(rgb(102, 102, 102) 2px 2px 0px) drop-shadow(rgb(255, 255, 255) -1px 2px 0px);
     cursor: pointer;">
-        <path d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M280.875,269.313l-96,64  C182.203,335.094,179.109,336,176,336c-2.594,0-5.188-0.625-7.547-1.891C163.25,331.32,160,325.898,160,320V192  c0-5.898,3.25-11.32,8.453-14.109c5.188-2.781,11.516-2.484,16.422,0.797l96,64C285.328,245.656,288,250.648,288,256  S285.328,266.344,280.875,269.313z M368,320c0,8.836-7.156,16-16,16h-16c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h16  c8.844,0,16,7.164,16,16V320z"></path>
-      </svg>
-    <p>To set the <a href="tickrate.html">tick rate</a> in <a href="tick.html">ticks</a> per second when in <a href="tickrate.html">consistent mode</a>, use the control that looks like this:</p>
+      <path
+        d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M280.875,269.313l-96,64  C182.203,335.094,179.109,336,176,336c-2.594,0-5.188-0.625-7.547-1.891C163.25,331.32,160,325.898,160,320V192  c0-5.898,3.25-11.32,8.453-14.109c5.188-2.781,11.516-2.484,16.422,0.797l96,64C285.328,245.656,288,250.648,288,256  S285.328,266.344,280.875,269.313z M368,320c0,8.836-7.156,16-16,16h-16c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h16  c8.844,0,16,7.164,16,16V320z">
+      </path>
+    </svg>
+    <p>To set the <a href="tickrate.html">tick rate</a> in <a href="tick.html">ticks</a> per second when in <a
+        href="tickrate.html">consistent mode</a>, use the control that looks like this:</p>
     <fieldset id="tickRateControl" data-quantity="" style="
     position: relative;
     top: 80px;
     left: 30px;
     ">
-        <legend>Change quantity</legend>
-        <button type="button" title="Slower" class="sub"></button><input type="number" step="0.01" name="quantity" pattern="[0-9]+" aria-label="Tickrate Control" style="
+      <legend>Change quantity</legend>
+      <button type="button" title="Slower" class="sub"></button><input type="number" step="0.01" name="quantity"
+        pattern="[0-9]+" aria-label="Tickrate Control" style="
     border: 3px solid rgb(51, 51, 51);
 "><button type="button" title="Faster" class="add"></button>
-      </fieldset>
-    <p>You can also adjust it using the arrow keys and you can jump to the number text box by pressing: <img src="backslash.svg" class="keyIcon">.</p>
-    <p>If instead of a constant <a href="tickrate.html">tick rate</a> in <a href="tickrate.html">consistent mode</a>, you want to run ticks as fast as possible use <a href="tickrate.html">realtime mode</a>.<br>To toggle between <a href="tickrate.html">realtime mode</a> and <a href="tickrate.html">consistent mode</a>, press: <img src="forwardslash.svg" class="keyIcon"> or use the check box that looks like this:</p>
+    </fieldset>
+    <p>You can also adjust it using the arrow keys and you can jump to the number text box by pressing: <img
+        src="backslash.svg" class="keyIcon">.</p>
+    <p>If instead of a constant <a href="tickrate.html">tick rate</a> in <a href="tickrate.html">consistent mode</a>,
+      you want to run ticks as fast as possible use <a href="tickrate.html">realtime mode</a>.<br>To toggle between <a
+        href="tickrate.html">realtime mode</a> and <a href="tickrate.html">consistent mode</a>, press: <img
+        src="forwardslash.svg" class="keyIcon"> or use the check box that looks like this:</p>
     <input type="checkbox" class="switch_1" style="
     position: relative;
     left: 30px;
@@ -152,23 +178,47 @@
       <img src="/icon2.svg">
       <h1 class="iconH1"><a href="phase2.html">Phase 2</a></h1>
     </div>
-    <p>Phase 2 adds on support for a second layer to OrCells, allowing for much more complex technology to be built in a smaller space and much easier.</p>
+    <p>Phase 2 adds on support for a second layer to OrCells, allowing for much more complex technology to be built in a
+      smaller space and much easier.</p>
     <h1 id="layer">Layers</h1>
-    <p>The top layer is linked with the colour <a style="color: #f00;">red</a> and the bottom layer is linked with <a style="color: #00f;">blue</a>.</p><p>To interact with only the top layer hold the upper modifier key: <img src="shift.svg" class="keyIcon">. The lower modifier key is: <img src="alt.svg" class="keyIcon"><br>These modifiers apply to most <a href="action.html">actions</a> such as <a href="forcing.html">forcing</a> and <a href="connecting.html">connecting</a> as well as their <a href="inverseAction.html">inverse actions</a>.</p>
+    <p>The top layer is linked with the colour <a style="color: #f00;">red</a> and the bottom layer is linked with <a
+        style="color: #00f;">blue</a>.</p>
+    <p>To interact with only the top layer hold the upper modifier key: <img src="shift.svg" class="keyIcon">. The lower
+      modifier key is: <img src="alt.svg" class="keyIcon"><br>These modifiers apply to most <a
+        href="action.html">actions</a> such as <a href="forcing.html">forcing</a> and <a
+        href="connecting.html">connecting</a> as well as their <a href="inverseAction.html">inverse actions</a>.</p>
     <h1 id="2cell"><a href="2cell.html">Type 2 cells</a></h1>
-    <p><a href="2cell.html">Type 2 cells</a> act as two separate <a href="1cell.html">type 1 cells</a> stacked on top of each other.<br>This means they have a top cell and bottom cell which can have a different bit, interact with each other and with other <a href="cell.html">cells</a> around them.</p>
-    <p>The two bits of a <a href="2cell.html">type 2 cell's</a> <a href="subcell.html">subcells</a> determines the colour of the whole <a href="cell.html">cell</a>.<br>The <a href="cell.html">cell</a> will be black if both <a href="subcell.html">subcells'</a> bits are off, red if only the top is on, blue if only the bottom is on and white if both are on:</p>
+    <p><a href="2cell.html">Type 2 cells</a> act as two separate <a href="1cell.html">type 1 cells</a> stacked on top of
+      each other.<br>This means they have a top cell and bottom cell which can have a different bit, interact with each
+      other and with other <a href="cell.html">cells</a> around them.</p>
+    <p>The two bits of a <a href="2cell.html">type 2 cell's</a> <a href="subcell.html">subcells</a> determines the
+      colour of the whole <a href="cell.html">cell</a>.<br>The <a href="cell.html">cell</a> will be black if both <a
+        href="subcell.html">subcells'</a> bits are off, red if only the top is on, blue if only the bottom is on and
+      white if both are on:</p>
     <img src="2cellColours.svg" style="width: 400px;">
-    <p>If the two <a href="subcell.html">subcells</a> of a <a href="2cell.html">type 2 cell</a> aren't <a href="connection.html">connected</a> to each other, the <a href="cell.html">cell</a> will have a cross in the centre like above.</p>
+    <p>If the two <a href="subcell.html">subcells</a> of a <a href="2cell.html">type 2 cell</a> aren't <a
+        href="connection.html">connected</a> to each other, the <a href="cell.html">cell</a> will have a cross in the
+      centre like above.</p>
     <h1 id="splitMerge"><a href="splitting.html">Splitting</a>/<a href="merging.html">Merging</a></h1>
-    <p>Splitting is an <a href="action.html">action</a> that converts a <a href="1cell.html">type 1 cell</a> into a <a href="2cell.html">type 2 cell</a> while merging is its <a href="inverseAction.html">inverse action</a>.<br>To split a <a href="1cell.html">type 1 cell</a>, hover over it and press: <img src="w.svg" class="keyIcon">. To merge press: <img src="s.svg" class="keyIcon">.</p>
+    <p>Splitting is an <a href="action.html">action</a> that converts a <a href="1cell.html">type 1 cell</a> into a <a
+        href="2cell.html">type 2 cell</a> while merging is its <a href="inverseAction.html">inverse action</a>.<br>To
+      split a <a href="1cell.html">type 1 cell</a>, hover over it and press: <img src="w.svg" class="keyIcon">. To merge
+      press: <img src="s.svg" class="keyIcon">.</p>
     <h1 id="applicital"><a href="applicital.html">Applicital</a> <a href="connection.html">connections</a></h1>
-    <p><a href="applicital.html">Applicital</a> is an invented word which refers to the axis that goes from above to below, perpendicular to horizontal and vertical.</p>
-    <p>An <a href="applicital.html">applicital</a> <a href="connection.html">connection</a> is a <a href="connection.html">connection</a> that goes between the two <a href="subcell.html">subcells</a> of a <a href="2cell.html">type 2 cell</a> from top to bottom or bottom to top.<br>They look like this:</p>
+    <p><a href="applicital.html">Applicital</a> is an invented word which refers to the axis that goes from above to
+      below, perpendicular to horizontal and vertical.</p>
+    <p>An <a href="applicital.html">applicital</a> <a href="connection.html">connection</a> is a <a
+        href="connection.html">connection</a> that goes between the two <a href="subcell.html">subcells</a> of a <a
+        href="2cell.html">type 2 cell</a> from top to bottom or bottom to top.<br>They look like this:</p>
     <img src="applicitalConnection.svg" style="width: 400px;">
-    <p>To create an <a href="applicital.html">applicital</a> <a href="connection.html">connection</a>, hold down the modifier key of the desired <a href="connection.html">connection's</a> output layer and left click the <a href="cell.html">cell</a> to make a <a href="buffer.html">buffer</a> or right click it make a <a href="not.html">not</a>.<br>To remove one, middle click the cell or hover over it and then press either: <img src="delete.svg" class="keyIcon"> or <img src="backspace.svg" class="keyIcon">.</p>
+    <p>To create an <a href="applicital.html">applicital</a> <a href="connection.html">connection</a>, hold down the
+      modifier key of the desired <a href="connection.html">connection's</a> output layer and left click the <a
+        href="cell.html">cell</a> to make a <a href="buffer.html">buffer</a> or right click it make a <a
+        href="not.html">not</a>.<br>To remove one, middle click the cell or hover over it and then press either: <img
+        src="delete.svg" class="keyIcon"> or <img src="backspace.svg" class="keyIcon">.</p>
     <h1 id="summary">Summary</h1>
-    <p>Diagram of different <a href="cell.html">cells</a>, <a href="connection.html">connections</a>, the <a href="types.html">cells' types</a>, their visual appearance and what is going on on the two layers:</p>
+    <p>Diagram of different <a href="cell.html">cells</a>, <a href="connection.html">connections</a>, the <a
+        href="types.html">cells' types</a>, their visual appearance and what is going on on the two layers:</p>
     <img src="layers.svg" style="width: 800px;">
     <p id="open" style="
     left: 50%;
@@ -182,19 +232,17 @@
     transform: translateX(-50%);
     visibility: hidden;
 " onclick="window.close();" class="link first">Close this window</p>
-<!--     <p style="
+    <!--     <p style="
     left: 50%;
     text-align: center;
     transform: translateX(-50%);
 ">(Work in progress, tutorial will be finished soon. For now, just try to work it out or <a
         href="https://discord.gg/2MZS7XZdXj">join the discord for help</a>)</p> -->
     <script>
-      if (window.opener === null)
-      {
+      if (window.opener === null) {
         document.getElementById("open").style.visibility = "visible";
       }
-      else
-      {
+      else {
         document.getElementById("close").style.visibility = "visible";
       }
     </script>

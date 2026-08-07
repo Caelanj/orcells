@@ -5,7 +5,6 @@ html, body {
   position: fixed;
   overflow: hidden;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
-  background: repeating-linear-gradient(45deg, #eeeeee, #eeeeee 10px, #888888 10px, #888888 15px);
 }
 canvas { position : absolute; top : 0px; left : 0px; }
 div {
@@ -37,7 +36,6 @@ code {
 }
 h1 {
   font-family: junegull;
-  filter: drop-shadow(-1px -1px 0px #ffffff) drop-shadow(2px -1px 0px #888888) drop-shadow(2px 2px 0px #666666) drop-shadow(-1px 2px 0px #ffffff);
   user-select: none;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -87,19 +85,96 @@ ol li {
 img {
   user-select: none;
 }
+.border, .menu, .tutorialDiv, .tutorialDiv textarea, .icon img {
+  border: 5px solid #333;
+}
+.outline, .textButton, button a, h1, .uiButton {
+  filter: drop-shadow(-1px -1px 0px #fff) drop-shadow(2px -1px 0px #888) drop-shadow(2px 2px 0px #666) drop-shadow(-1px 2px 0px #fff);
+}
+.stripedBackground, .textButton, body {
+  background: repeating-linear-gradient(45deg, #eee, #eee 10px, #888 10px, #888 15px);
+}
+.christmasStripes {
+  background: repeating-linear-gradient(45deg, #f00, #f00 20px, #0f0 20px, #0f0 40px);
+}
+.myWeekStripes {
+  background: repeating-linear-gradient(180deg, #fa0 0px, #fa0 10px, #fd8 10px, #fda 20px, #fff 20px, #fff 30px, #0af 30px, #0af 40px, #025 40px, #025 50px, #0f0 50px, #0f0 60px, #afa 60px, #afa 70px, #fff 70px, #fff 80px, #aaa 80px, #aaa 90px, #000 90px, #000, 100px, #aaa 100px, #aaa 110px, #fff 110px, #fff 120px, #80a 120px, #80a 130px);
+}
+.uiButton {
+  position: absolute;
+  cursor: pointer;
+}
+.tabs {
+  border-right: 5px solid rgb(51, 51, 51);
+}
+.tabs button {
+  display: block;
+  background-color: #ddd;
+  color: black;
+  padding: 22px 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: inherit;
+  height: 25%;
+  font-size: 2.5vw;
+  text-align: center;
+  border-bottom: 5px solid #ccc;
+}
+.tabs button:last-child {
+  border-bottom: none;
+}
+.tabs button:hover {
+  background-color: #aaa;
+}
+.tabs button.active {
+  background-color: #333;
+}
+.menu {
+  width: 77%;
+  height: 77%;
+  background: #eee;
+  border-radius: 56px;
+  position: absolute;
+  top: 50%;left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  visibility: hidden;
+  overflow: hidden;
+}
 .link {
   color: -webkit-link;
   cursor: pointer;
 }
 .textButton {
   border: none;
-  background: repeating-linear-gradient(45deg, #eee, #eee 10px, #888 10px, #888 15px);
   justify-content: center;
   align-items: center;
   font-family: 'junegull';
   user-select: none;
-  filter: drop-shadow(-1px -1px 0px #fff) drop-shadow(2px -1px 0px #888) drop-shadow(2px 2px 0px #666) drop-shadow(-1px 2px 0px #fff);
   border-radius: 25px;
+}
+button a {
+  pointer-events: none;
+}
+.crossButton{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 128px;
+  cursor: pointer;
+}
+.fullButton {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  width: 60%;
+  font-size: 200%;
+  height: 15%;
+  display: flex;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
 }
 .textButton:hover {
   background: repeating-linear-gradient(45deg, #ACCEF7, #ACCEF7 10px, #458 10px, #458 15px);
@@ -143,12 +218,17 @@ input[type="radio"]:last-child {
   top: 75px;
   left: 50%;
   transform: translateX(-50%);
-  border: 5px solid rgb(51, 51, 51);
 }
-.tutorialDiv h1 {
+.tutorialDiv h1, .tutorialDiv textarea {
   position: relative;
   left: 30px;
   top: 80px;
+}
+.tutorialDiv textarea {
+  width: 95%;
+  resize: vertical;
+  height: 300px;
+  border-radius: 25px;
 }
 .iconOffset {
   top: 108px !important;
@@ -176,7 +256,6 @@ input[type="radio"]:last-child {
   width: 64px;
   height: 64px;
   position: relative;
-  border: 6px solid #333;
   border-radius: 10px;
   background-color: #333;
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   width="144pt"
+   height="144pt"
+   sodipodi:docname="T1B0.svg"
+   version="1.0"
+   inkscape:export-filename="orcells.png"
+   inkscape:export-xdpi="256"
+   inkscape:export-ydpi="256"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs5" />
+  <sodipodi:namedview
+     inkscape:window-height="1017"
+     inkscape:window-width="1920"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     inkscape:showpageshadow="false"
+     borderlayer="top"
+     inkscape:zoom="4"
+     inkscape:cx="66.75"
+     inkscape:cy="111.75"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:current-layer="g18503"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="pt"
+     showgrid="false"
+     inkscape:window-maximized="1" />
+  <g
+     id="g18503"
+     transform="matrix(1.4644002,0,0,1.5083815,-112.7634,-48.804621)"
+     style="stroke-width:10.29989936;stroke-dasharray:none">
+    <path
+       d="m 117.97876,132.43231 12.15077,-15.27143 v 12.72007 l 12.47424,-15.68008 v 10.46492 l 10.39407,-13.06169 v 6.97517 L 170.96418,95.999686 153.00129,73.424433 v 6.977334 L 142.60723,67.340077 V 77.800673 L 130.13297,62.127076 v 12.715743 l -12.15249,-15.275691 -3.9e-4,24.288285 -19.205133,0 V 108.1437 h 19.205133 l 3.9e-4,24.28828 z"
+       id="path1341"
+       sodipodi:nodetypes="ccccccccccccccccccccc"
+       style="fill:#ff0000;fill-opacity:1;stroke:#333333;stroke-width:6.72665;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  </g>
+</svg>
