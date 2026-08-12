@@ -7,7 +7,17 @@ var
     //DO NOT CHANGE WHILE RUNNING, instead use: board.resize(width, height)
     width: 9, //starting width of the cell grid
     height: 9, //starting height of the cell grid
-    default2Cell: false //if the default cell type is 1 or 2
+    default2Cell: false, //if the default cell type is 1 or 2
+    applySize: (() => {
+      let width = Number(document.getElementById("boardWidthControl").children[2].value);
+      let height = Number(document.getElementById("boardHeightControl").children[2].value);
+      if (isNaN(width)) width = board.width;
+      if (isNaN(height)) height = board.height;
+      width = Math.max(1, Math.min(50, width));
+      height = Math.max(1, Math.min(50, height));
+      board.resize(width, height);
+      ui.close();
+    })
   },
   render = { //The state of rendering and it's functions
     quality: { false: 2, true: 1 }, //false is desktop device render quality, true is mobile device render quality, render quality is from 0-2 (0 being don't draw at all and 2 being full quality)
@@ -1555,7 +1565,7 @@ utility.decimalToBinary = ((num) => {
 ui = {
   current: null,
   blur: 0,
-  menus: ["help", "settings"],
+  menus: ["help", "settings", "boardSize"],
   iconMenus: ["help", "settings"],
   quantities: document.getElementById("tickRateControl"),
   isOpen: false,
@@ -1672,12 +1682,48 @@ ui = {
 
       tick.realtimeCheck();
     }
+  }),
+  changeBoardWidth: ((change) => {
+    let input = document.getElementById("boardWidthControl").children[2];
+    let quantity = Number(input.value);
+    if (isNaN(quantity)) quantity = board.width;
+    quantity += change;
+    quantity = Math.max(1, Math.min(50, quantity));
+    input.value = quantity;
+  }),
+  changeBoardHeight: ((change) => {
+    let input = document.getElementById("boardHeightControl").children[2];
+    let quantity = Number(input.value);
+    if (isNaN(quantity)) quantity = board.height;
+    quantity += change;
+    quantity = Math.max(1, Math.min(50, quantity));
+    input.value = quantity;
+  }),
+  updateBoardWidth: (() => {
+    let input = document.getElementById("boardWidthControl").children[2];
+    let quantity = Number(input.value);
+    if (isNaN(quantity)) quantity = board.width;
+    quantity = Math.max(1, Math.min(50, quantity));
+    input.value = quantity;
+  }),
+  updateBoardHeight: (() => {
+    let input = document.getElementById("boardHeightControl").children[2];
+    let quantity = Number(input.value);
+    if (isNaN(quantity)) quantity = board.height;
+    quantity = Math.max(1, Math.min(50, quantity));
+    input.value = quantity;
   })
 }
 ui.quantities.children[2].value = 10;
 ui.quantities.children[2].onchange = _ => tick.realtimeCheck();
 ui.quantities.children[1].addEventListener("click", _ => ui.changeQuantity(-1));
 ui.quantities.children[3].addEventListener("click", _ => ui.changeQuantity(1));
+document.getElementById("boardWidthControl").children[1].addEventListener("click", _ => ui.changeBoardWidth(-1));
+document.getElementById("boardWidthControl").children[3].addEventListener("click", _ => ui.changeBoardWidth(1));
+document.getElementById("boardHeightControl").children[1].addEventListener("click", _ => ui.changeBoardHeight(-1));
+document.getElementById("boardHeightControl").children[3].addEventListener("click", _ => ui.changeBoardHeight(1));
+document.getElementById("boardWidthControl").children[2].onchange = _ => ui.updateBoardWidth();
+document.getElementById("boardHeightControl").children[2].onchange = _ => ui.updateBoardHeight();
 //Culling Object Initialization
 culling = { //Object that contains a bunch of extra data that is used to improve performance
   tick: [], //List of all type 1 cells that need to be calculated in the next tick

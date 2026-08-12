@@ -1,0 +1,11 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "indexing": {
+    "provider": "kilo",
+    "model": "mistralai/mistral-embed-2312",
+    "openai-compatible": {
+      "baseUrl": "http://192.168.1.32:3001/vw",
+      "apiKey": "freellmapi-1e000dad3f8e1e2f768dadb27a1319a8ba689502cb44041e"
+    }
+  }
+}

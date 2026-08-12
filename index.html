@@ -304,7 +304,7 @@
         <h1 style="position: absolute;left: 20px;top: 120px;color: #0000ff;">report this lol</h1>
       </div>
       <svg xmlns="http://www.w3.org/2000/svg" width="64.4" height="92.10" viewBox="-1000 -1000 780 780"
-        style="right: 10;top: 10;" class="uiButton" onclick="file.downloadJSON('untitled')">
+        style="right: 10px; top: 10px;" class="uiButton" onclick="file.downloadJSON('untitled')">
         <g id="g10" style="
     margin: 0;
 ">
@@ -319,7 +319,7 @@
         </g>
       </svg>
       <svg xmlns="http://www.w3.org/2000/svg" width="64.4" height="92.10" viewBox="-1000 -1000 780 780"
-        style="right: 90;top: 10;" class="uiButton" onclick="file.upload()">
+        style="right: 90px; top: 10px;" class="uiButton" onclick="file.upload()">
         <g id="g10" style="
     margin: 0;
 ">
@@ -593,7 +593,7 @@
       onclick="window.open('https://discord.gg/2MZS7XZdXj')"><a tabindex="-1"
         href="https://discord.gg/2MZS7XZdXj">Discord</a></button>
   </div>
-  <div id="settings" class="menu" style="visibility: hidden;">
+<div id="settings" class="menu" style="visibility: hidden;">
     <h1 class="heading">Settings</h1>
     <img src="./tiles/applicital/3.svg" class="crossButton" onclick="ui.close()">
     <button class="textButton fullButton" style="
@@ -605,7 +605,33 @@
 "><a>Visual</a></button><button class="textButton fullButton" style="
     top: 66%;
 "><a>Tick</a></button>
-  </div>
+    <button class="textButton fullButton" style="
+    top: 82%;
+" onclick="ui.open('boardSize')"><a>Board Size</a></button>
+</div>
+<div id="boardSize" class="menu" style="visibility: hidden;">
+    <h1 class="heading">Board Size</h1>
+    <img src="./tiles/applicital/3.svg" class="crossButton" onclick="ui.close()">
+    <div class="textButton fullButton" style="top: 34%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <span>Width</span>
+        <fieldset data-quantity="" id="boardWidthControl">
+            <legend>Change quantity</legend>
+            <button type="button" title="Decrease" class="sub"></button>
+            <input type="number" name="quantity" pattern="[0-9]+" aria-label="Board Width" min="1" max="50" value="9">
+            <button type="button" title="Increase" class="add"></button>
+        </fieldset>
+    </div>
+    <div class="textButton fullButton" style="top: 50%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <span>Height</span>
+        <fieldset data-quantity="" id="boardHeightControl">
+            <legend>Change quantity</legend>
+            <button type="button" title="Decrease" class="sub"></button>
+            <input type="number" name="quantity" pattern="[0-9]+" aria-label="Board Height" min="1" max="50" value="9">
+            <button type="button" title="Increase" class="add"></button>
+        </fieldset>
+    </div>
+    <button class="textButton fullButton" style="top: 66%;" onclick="board.applySize()"><a>Apply</a></button>
+</div>
   <!--<switch script>-->
   <script src="./script.js"></script>
   <!--</switch>-->
