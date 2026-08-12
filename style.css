@@ -91,8 +91,11 @@ img {
 .outline, .textButton, button a, h1, .uiButton {
   filter: drop-shadow(-1px -1px 0px #fff) drop-shadow(2px -1px 0px #888) drop-shadow(2px 2px 0px #666) drop-shadow(-1px 2px 0px #fff);
 }
-.stripedBackground, .textButton, body {
+.stripedBackground, .textButton {
   background: repeating-linear-gradient(45deg, #eee, #eee 10px, #888 10px, #888 15px);
+}
+body {
+  background: #eee;
 }
 .christmasStripes {
   background: repeating-linear-gradient(45deg, #f00, #f00 20px, #0f0 20px, #0f0 40px);

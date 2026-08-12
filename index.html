@@ -602,7 +602,8 @@
 
     <button class="textButton fullButton" style="
     top: 50%;
-"><a>Visual</a></button><button class="textButton fullButton" style="
+" onclick="ui.open('visual')"><a>Visual</a></button>
+    <button class="textButton fullButton" style="
     top: 66%;
 "><a>Tick</a></button>
     <button class="textButton fullButton" style="
@@ -631,6 +632,14 @@
         </fieldset>
     </div>
     <button class="textButton fullButton" style="top: 66%;" onclick="board.applySize()"><a>Apply</a></button>
+</div>
+<div id="visual" class="menu" style="visibility: hidden;">
+    <h1 class="heading">Visual</h1>
+    <img src="./tiles/applicital/3.svg" class="crossButton" onclick="ui.close()">
+    <div class="textButton fullButton" style="top: 34%; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <span>Static Stripes</span>
+        <input type="checkbox" class="switch_1" id="staticStripesCheckbox" onchange="render.toggleStaticStripes()" style="pointer-events: auto;">
+    </div>
 </div>
   <!--<switch script>-->
   <script src="./script.js"></script>

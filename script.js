@@ -37,7 +37,8 @@ var
     muted: true //if soundtracks should be muted by default
   },
   debug = { //Whether or not debug mode is enabled and the function to change that
-    enabled: false //logs FPS and TPS to console
+    enabled: false, //logs FPS, frame time, and drawStripes time to console
+    drawStripesTime: 0
   },
   //</parameters>
   //Main Objects
@@ -349,6 +350,8 @@ render.drifty = 0;
 render.homeCharge = 0;
 render.gridLimit = 512; // max grid lines
 render.gridSize = 128; //world pixels
+render.stripePattern = null;
+render.staticStripes = false; // static CSS stripes vs animated canvas stripes
 render.scaleRate = 1.02; // Closer to 1 slower rate of change
 render.lastScale = 0.5
 render.quality = render.quality[core.mobile];
@@ -479,6 +482,44 @@ render.drawGrid = ((gridScreenSize = 128) => { //The core function that the whol
   render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
   render.ctx.render.stroke();
 })
+render.stripePattern = null;
+render.buildStripePattern = () => {
+  const gridScale = render.gridSize;
+  const period = gridScale / 4;
+  const stripeWidth = gridScale / 8;
+  const size = period * 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#eee";
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = "#888";
+  ctx.beginPath();
+  for (let d = -size; d < size * 2; d += period) {
+    ctx.moveTo(d, 0);
+    ctx.lineTo(d + stripeWidth, 0);
+    ctx.lineTo(d + stripeWidth + size, size);
+    ctx.lineTo(d + size, size);
+    ctx.closePath();
+  }
+  ctx.fill();
+  render.stripePattern = render.ctx.render.createPattern(canvas, "repeat");
+};
+render.drawStripes = () => {
+  if (render.staticStripes) return;
+  render.panZoom.apply();
+  if (!render.stripePattern) render.buildStripePattern();
+  render.ctx.render.fillStyle = render.stripePattern;
+  const extent = render.gridSize * render.gridLimit;
+  render.ctx.render.fillRect(-extent, -extent, extent * 2, extent * 2);
+  render.ctx.render.setTransform(1, 0, 0, 1, 0, 0);
+}
+render.toggleStaticStripes = () => {
+  render.staticStripes = document.getElementById("staticStripesCheckbox").checked;
+  document.getElementById("gameDiv").classList.toggle("stripedBackground", render.staticStripes);
+  localStorage.setItem("staticStripes", render.staticStripes);
+};
 render.draw = {}
 render.draw.connection = ((point, type, rotate, axis, flipped) => {
   rotate += utility.event == "April Fools" ? 2 : 0
@@ -690,6 +731,8 @@ tick.set = ((setRealTime, setTickRate) => { //Set the tickrate
   } else if (!tick.realtime && setRealTime) {
     tick.realtime = setRealTime;
   }
+  localStorage.setItem("tickRealtime", tick.realtime);
+  localStorage.setItem("tickRate", tick.rate);
 })
 tick.tick = ((auto = true) => { //Perform a tick
   if ((!auto || !tick.paused) && !tick.idle) {
@@ -1214,6 +1257,16 @@ music.audio.src = music.soundtracks[music.index];
 localStorage.setItem("mute", music.muted);
 localStorage.setItem("track", music.index);
 localStorage.setItem("currentTime", music.audio.currentTime);
+
+// Load user settings from localStorage
+render.staticStripes = (String(localStorage.getItem("staticStripes") ?? false) === "true");
+tick.realtime = (String(localStorage.getItem("tickRealtime") ?? false) === "true");
+tick.rate = Number(localStorage.getItem("tickRate")) ?? 100;
+
+// Apply loaded settings (basic)
+document.getElementById("staticStripesCheckbox").checked = render.staticStripes;
+document.getElementById("gameDiv").classList.toggle("stripedBackground", render.staticStripes);
+document.getElementById("realtimeCheckBox").checked = tick.realtime;
 document.getElementById("muteCross").style.visibility = music.muted
   ? "inherit"
   : "hidden);";
@@ -1247,9 +1300,10 @@ music.audio.onplay = (() => { //Remove the cross on the sound icon when the song
 debug.interval = -1
 debug.setEnabled = ((state = true) => { //Enable or disable debug mode
   debug.enabled = state
+  localStorage.setItem("debugEnabled", debug.enabled);
   if (state) {
     debug.interval = setInterval((_ => { //If enabling, set the framerate log interval
-      console.log("FPS: " + render.frames, " TPS: " + tick.frames)
+      console.log("FPS: " + render.frames, " TPS: " + tick.frames, "Frame: " + (render.lastFrameTime || 0).toFixed(2) + "ms", "Stripes: " + (render.drawStripesFrameTime || 0).toFixed(2) + "ms")
       render.frames = 0;
       tick.frames = 0;
     }), 1000)
@@ -1258,6 +1312,7 @@ debug.setEnabled = ((state = true) => { //Enable or disable debug mode
     clearInterval(debug.interval) //If disabling, clear the interval
   }
 })
+debug.enabled = (String(localStorage.getItem("debugEnabled") ?? false) === "true");
 debug.setEnabled(debug.enabled)
 //File Object Initialization
 file = {
@@ -1565,7 +1620,7 @@ utility.decimalToBinary = ((num) => {
 ui = {
   current: null,
   blur: 0,
-  menus: ["help", "settings", "boardSize"],
+  menus: ["help", "settings", "boardSize", "visual"],
   iconMenus: ["help", "settings"],
   quantities: document.getElementById("tickRateControl"),
   isOpen: false,
@@ -1724,6 +1779,11 @@ document.getElementById("boardHeightControl").children[1].addEventListener("clic
 document.getElementById("boardHeightControl").children[3].addEventListener("click", _ => ui.changeBoardHeight(1));
 document.getElementById("boardWidthControl").children[2].onchange = _ => ui.updateBoardWidth();
 document.getElementById("boardHeightControl").children[2].onchange = _ => ui.updateBoardHeight();
+
+// Apply loaded tick settings after UI is initialized
+tick.realtimeCheck();
+ui.quantities.children[2].value = Math.round(1000 / tick.rate);
+
 //Culling Object Initialization
 culling = { //Object that contains a bunch of extra data that is used to improve performance
   tick: [], //List of all type 1 cells that need to be calculated in the next tick
@@ -2079,6 +2139,7 @@ document.addEventListener("contextmenu", (event) => event.preventDefault());
 ].forEach((name) => document.getElementById("gameDiv").addEventListener(name, core.mouseEvents));
 document.getElementById("gameDiv").addEventListener("wheel", core.mouseEvents, { passive: false });
 core.update = (_ => { //The main loop that renders everything and runs ticks in realtime sync
+  const frameStart = performance.now();
   render.ctx.render.setTransform(1, 0, 0, 1, 0, 0); // reset transform
   render.ctx.render.globalAlpha = 1; // reset alpha
   //<panzoom>
@@ -2088,6 +2149,9 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
   } else {
     render.ctx.render.clearRect(0, 0, render.w, render.h);
   }
+  if (debug.enabled) debug.drawStripesStart = performance.now();
+  render.drawStripes();
+  if (debug.enabled) debug.drawStripesTime = performance.now() - debug.drawStripesStart;
   if (core.mouse.wheel !== 0) {
     let scale = 1;
     scale = core.mouse.wheel < 0 ? 1 / render.scaleRate : render.scaleRate;
@@ -2287,6 +2351,11 @@ core.update = (_ => { //The main loop that renders everything and runs ticks in 
   render.homeDrift();
   //</render>
   render.frames++
+  if (debug.enabled) {
+    const frameTime = performance.now() - frameStart;
+    render.lastFrameTime = frameTime;
+    render.drawStripesFrameTime = debug.drawStripesTime;
+  }
   requestAnimationFrame(core.update);
 })
 core.WorldToGrid = ((point) => { //Converts world cords to grid coords
@@ -2302,6 +2371,8 @@ core.GridToWorld = ((point) => { //Converts grid cords to world coords
   ];
 })
 core.lastCell = core.WorldToGrid(render.panZoom.toWorld(core.mouse.x, core.mouse.y));
+document.getElementById("staticStripesCheckbox").checked = render.staticStripes;
+document.getElementById("gameDiv").classList.toggle("stripedBackground", render.staticStripes);
 if (utility.event == "Christmas") { //Special Christmas Theme
   //Set the favicon to the Christmas icon
   document.querySelector('link[rel="icon"]').href = './tiles/events/christmas/icon2.svg';
