@@ -39,13 +39,14 @@ var
   culling = {}, //Extra data that helps increase the performance of things like rendering and performing ticks
   core = {} //The core functionality of Orcells
 //<mobile>
-core.mobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 //Detect if device is touch screen
-if (core.mobile) {
-  document.getElementById("mobileControls").style.visibility = "inherit";
-} else {
-  document.getElementById("forceRect").style.pointerEvents = "none";
-  document.getElementById("connectRect").style.pointerEvents = "none";
-}
+// core.mobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0 //Detect if device is touch screen
+core.mobile = false;
+// if (core.mobile) {
+//   document.getElementById("mobileControls").style.visibility = "inherit";
+// } else {
+//   document.getElementById("forceRect").style.pointerEvents = "none";
+//   document.getElementById("connectRect").style.pointerEvents = "none";
+// }
 //</mobile>
 //<events>
 utility.isMyWeek = (_ => {
